@@ -1,0 +1,55 @@
+import { CodeBlock } from "@/components/experiment/CodeBlock";
+import { Callout, PrototypeBoard } from "@/components/experiment/ExperimentPrimitives";
+
+export const meta = {
+  title: "From a loose prompt to a useful prototype",
+  slug: "prompt-to-prototype",
+  date: "2026-06-27",
+  summary: "An image-led process note about using generated directions as material for design judgment—not as finished design.",
+  status: "draft",
+  tags: ["AI", "Process", "Prototyping"],
+  sections: [
+    { id: "the-first-pass", label: "The first pass" },
+    { id: "turning-output-into-material", label: "Output as material" },
+    { id: "a-better-prompt-structure", label: "A better prompt structure" },
+    { id: "reflection", label: "Reflection" }
+  ]
+};
+
+export const promptCode = `Context: A person is comparing two complex options.
+Goal: Help them understand the meaningful differences.
+Interaction: Let them adjust only the factors they control.
+Tone: Calm, direct, and specific.
+Avoid: Scores without explanation, urgency, and hidden defaults.`;
+
+## The first pass
+
+A loose prompt usually produces a loose prototype. It may look complete, but the important decisions—what the person knows, what they can change, and how the system earns trust—are still unresolved.
+
+The useful move is to treat the first output as material. It gives us something concrete to critique, rearrange, and test.
+
+<PrototypeBoard caption="Sample static visual: three interface directions distilled into a small comparison board." />
+
+## Turning output into material
+
+I look for three things in an early generated direction:
+
+1. **A clear behavioral idea.** Something that can be tested, not just admired.
+2. **A visible information hierarchy.** The person should know where to start.
+3. **A reason to continue.** Each interaction should make the next decision easier.
+
+<Callout>
+  A generated screen is not evidence that the product idea works. Its value is that it makes assumptions visible sooner.
+</Callout>
+
+## A better prompt structure
+
+Instead of asking for a polished screen, I describe the decision and the constraints around it.
+
+<CodeBlock code={promptCode} language="text" />
+
+This structure leaves visual interpretation open while making the product intent much harder to ignore.
+
+## Reflection
+
+The strongest use of AI in this workflow is not speed by itself. It is the ability to create enough specific material that design judgment can begin earlier—and to keep that material cheap enough to discard.

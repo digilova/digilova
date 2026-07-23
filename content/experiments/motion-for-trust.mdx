@@ -1,0 +1,57 @@
+import { TrustMotionDemo } from "@/components/experiment/TrustMotionDemo";
+import { CodePreview, Callout } from "@/components/experiment/ExperimentPrimitives";
+
+export const meta = {
+  title: "A small motion system for trust",
+  slug: "motion-for-trust",
+  date: "2026-07-09",
+  summary: "Testing how timing, continuity, and reduced motion can make state changes feel easier to follow.",
+  status: "draft",
+  tags: ["Motion", "Interaction", "Accessibility"],
+  sections: [
+    { id: "why-continuity-matters", label: "Why continuity matters" },
+    { id: "code-and-preview", label: "Code and preview" },
+    { id: "design-constraints", label: "Design constraints" },
+    { id: "accessibility", label: "Accessibility" }
+  ]
+};
+
+export const motionCode = `.object {
+  transition:
+    transform 540ms cubic-bezier(.22, 1, .36, 1),
+    border-radius 540ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.object[data-active="true"] {
+  transform: translateX(70px) rotate(90deg);
+  border-radius: 50%;
+}`;
+
+## Why continuity matters
+
+When an interface changes state, motion can show that the new thing came from the old thing. That continuity is especially useful in high-consideration experiences, where an unexplained jump can make the system feel unpredictable.
+
+This experiment uses one object, one spatial move, and one change in shape. There is no decorative entrance or duplicated layer.
+
+## Code and preview
+
+<CodePreview code={motionCode} language="css">
+  <TrustMotionDemo />
+</CodePreview>
+
+The easing accelerates quickly and spends more time settling. That keeps the response immediate while giving the eye enough time to follow the transformation.
+
+## Design constraints
+
+<Callout>
+  Motion should preserve context, not call attention to itself. If the transition does not explain a relationship, it probably does not need to be there.
+</Callout>
+
+- Keep the origin and destination visible.
+- Avoid overlapping transitions with different meanings.
+- Prefer a single continuous object over a crossfade.
+- Let timing follow the distance traveled.
+
+## Accessibility
+
+The site honors the operating system’s reduced-motion preference. With reduced motion enabled, the same state change happens almost instantly, with no loss of information or control.
