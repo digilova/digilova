@@ -65,20 +65,82 @@
   outline-offset: 3px;
 }
 
-.rotateButton svg {
-  width: 18px;
-  height: 18px;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 2;
-  transform-origin: center;
-  transition: transform 200ms ease;
+.rotateIcon {
+  position: relative;
+  display: block;
+  width: 34px;
+  height: 34px;
+  pointer-events: none;
 }
 
-.rotateButton[aria-pressed="true"] svg {
-  transform: scaleX(-1);
+.rotateIcon img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: invert(1);
+  opacity: 0;
+}
+
+.rotateIcon[data-orientation="portrait"] .rotateFrameStart,
+.rotateIcon[data-orientation="landscape"] .rotateFrameEnd {
+  opacity: 1;
+}
+
+.rotateIcon[data-direction="forward"] .rotateFrameStart,
+.rotateIcon[data-direction="backward"] .rotateFrameEnd {
+  animation: rotate-frame-first 200ms steps(1, end) both;
+}
+
+.rotateIcon[data-direction] .rotateFrameMiddle {
+  animation: rotate-frame-middle 200ms steps(1, end) both;
+}
+
+.rotateIcon[data-direction="forward"] .rotateFrameEnd,
+.rotateIcon[data-direction="backward"] .rotateFrameStart {
+  animation: rotate-frame-last 200ms steps(1, end) both;
+}
+
+@keyframes rotate-frame-first {
+  0%,
+  32.999% {
+    opacity: 1;
+  }
+
+  33%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes rotate-frame-middle {
+  0%,
+  32.999% {
+    opacity: 0;
+  }
+
+  33%,
+  65.999% {
+    opacity: 1;
+  }
+
+  66%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes rotate-frame-last {
+  0%,
+  65.999% {
+    opacity: 0;
+  }
+
+  66%,
+  100% {
+    opacity: 1;
+  }
 }
 
 .playerPicker {
@@ -166,8 +228,8 @@
     transition: none;
   }
 
-  .rotateButton svg {
-    transition: none;
+  .rotateIcon[data-direction] img {
+    animation: none;
   }
 
   .playerButton {

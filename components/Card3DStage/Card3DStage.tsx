@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -11,7 +12,14 @@ import { BareCard3DViewer } from "./BareCard3DViewer";
 import type { CardOrientation } from "./card3d";
 import defaultBack from "./assets/yamal-back.webp";
 import defaultFront from "./assets/yamal-front.webp";
+import rotateFrameEnd from "./assets/rotate-frame-end.svg?url";
+import rotateFrameMiddle from "./assets/rotate-frame-middle.svg?url";
+import rotateFrameStart from "./assets/rotate-frame-start.svg?url";
 import styles from "./Card3DStage.module.css";
+
+const ROTATE_ICON_DURATION_MS = 200;
+
+type RotationDirection = "forward" | "backward";
 
 export type Card3DOption = {
   id: string;
@@ -67,7 +75,10 @@ export function Card3DStage({
   );
   const [orientation, setOrientation] =
     useState<CardOrientation>("portrait");
+  const [rotationDirection, setRotationDirection] =
+    useState<RotationDirection | null>(null);
   const playerPickerRef = useRef<HTMLDivElement>(null);
+  const rotationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const selectedCard =
     cardOptions.find((card) => card.id === selectedCardId) ?? cardOptions[0];
   const cardAspect =
@@ -106,6 +117,32 @@ export function Card3DStage({
         );
       });
   };
+  const handleOrientationChange = () => {
+    const direction: RotationDirection =
+      orientation === "portrait" ? "forward" : "backward";
+
+    if (rotationTimerRef.current) {
+      clearTimeout(rotationTimerRef.current);
+    }
+
+    setRotationDirection(direction);
+    setOrientation((current) =>
+      current === "portrait" ? "landscape" : "portrait",
+    );
+    rotationTimerRef.current = setTimeout(
+      () => setRotationDirection(null),
+      ROTATE_ICON_DURATION_MS,
+    );
+  };
+
+  useEffect(
+    () => () => {
+      if (rotationTimerRef.current) {
+        clearTimeout(rotationTimerRef.current);
+      }
+    },
+    [],
+  );
 
   return (
     <>
@@ -193,15 +230,30 @@ export function Card3DStage({
               : "Rotate card to portrait"
           }
           aria-pressed={orientation === "landscape"}
-          onClick={() =>
-            setOrientation((current) =>
-              current === "portrait" ? "landscape" : "portrait",
-            )
-          }
+          onClick={handleOrientationChange}
         >
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M8.5 5h-4m0 0 2.8-2.8M4.5 5C10.9 5 15 9.1 15 14.5c0 3.2-1.4 5.8-4 7.3" />
-          </svg>
+          <span
+            className={styles.rotateIcon}
+            data-direction={rotationDirection ?? undefined}
+            data-orientation={orientation}
+            aria-hidden="true"
+          >
+            <img
+              className={styles.rotateFrameStart}
+              src={rotateFrameStart}
+              alt=""
+            />
+            <img
+              className={styles.rotateFrameMiddle}
+              src={rotateFrameMiddle}
+              alt=""
+            />
+            <img
+              className={styles.rotateFrameEnd}
+              src={rotateFrameEnd}
+              alt=""
+            />
+          </span>
         </button>
         <span className={styles.instructions}>Drag to rotate the card</span>
       </div>
