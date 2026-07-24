@@ -818,7 +818,8 @@ select {
     padding: 48px 20px 80px;
   }
 
-  .content-column {
+  .content-column,
+  .article-layout {
     max-width: 560px;
   }
 
