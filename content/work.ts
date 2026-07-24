@@ -23,8 +23,8 @@ export const workEntries: WorkEntry[] = [
     summary:
       "Exploring how AI can remove friction, build trust, and make complex decisions feel more intuitive.",
     visual: {
-      alt: "Abstract study representing adaptive AI experiences",
-      label: "Adaptive by design",
+      alt: "Abstract study representing product foundations",
+      label: "Leading product foundations",
       kicker: "Exploration · Draft",
       background:
         "linear-gradient(135deg, #dff3ec 0%, #c7e3dc 52%, #b9d5d4 100%)",
@@ -38,8 +38,8 @@ export const workEntries: WorkEntry[] = [
       "Leading a design team focused on making the crypto economy more accessible, understandable, and secure.",
     href: "https://www.coinbase.com/",
     visual: {
-      alt: "Abstract study representing clarity and security in crypto",
-      label: "Clarity at scale",
+      alt: "Abstract study representing simpler tax experiences",
+      label: "Demystifying taxes",
       kicker: "Coinbase · Draft",
       background:
         "linear-gradient(135deg, #dfe8ff 0%, #c8d6ff 48%, #b9c7f0 100%)",
@@ -53,8 +53,8 @@ export const workEntries: WorkEntry[] = [
       "Shaping experiences that help people understand their financial lives and move forward with confidence.",
     href: "https://www.goldmansachs.com/what-we-do/asset-management/ayco",
     visual: {
-      alt: "Abstract study representing connected financial decisions",
-      label: "Confidence, connected",
+      alt: "Abstract study representing proactive financial protection",
+      label: "From reactive to proactive protection",
       kicker: "Ayco · Draft",
       background:
         "linear-gradient(135deg, #f1eadf 0%, #e5d7c6 50%, #d8c8bc 100%)",
