@@ -69,8 +69,8 @@
 
 .playerPicker {
   position: absolute;
-  top: 16px;
-  left: 16px;
+  right: 16px;
+  bottom: 58px;
   z-index: 3;
   display: flex;
   flex-direction: column;
@@ -78,13 +78,14 @@
 }
 
 .playerButton {
+  position: relative;
   display: block;
-  width: 38px;
-  height: 50px;
-  padding: 2px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
   overflow: hidden;
   border: 1px solid rgb(255 255 255 / 18%);
-  border-radius: 7px;
+  border-radius: 50%;
   background: rgb(3 7 18 / 72%);
   box-shadow: 0 6px 16px rgb(0 0 0 / 20%);
   cursor: pointer;
@@ -115,11 +116,14 @@
 }
 
 .playerButton img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: 4px;
-  object-fit: cover;
+  position: absolute;
+  top: calc(50% + var(--thumbnail-offset-y));
+  left: calc(50% + var(--thumbnail-offset-x));
+  width: calc(var(--thumbnail-scale) * 100%);
+  max-width: none;
+  height: auto;
+  border-radius: inherit;
+  transform: translate(-50%, -50%);
   pointer-events: none;
   user-select: none;
   -webkit-user-drag: none;

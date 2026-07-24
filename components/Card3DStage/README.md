@@ -40,5 +40,6 @@ scan is rotated onto that portrait back surface. The bottom-right rotate control
 lets the viewer explicitly switch the physical card between portrait and
 landscape.
 
-Pass a `cards` array to show the optional top-left thumbnail rail. Each option
-supplies its player label and front/back texture pair.
+Pass a `cards` array to show the optional circular player thumbnails above the
+bottom-right rotate control. Each option supplies its player label, front/back
+texture pair, and optional thumbnail scale and face-center offsets.

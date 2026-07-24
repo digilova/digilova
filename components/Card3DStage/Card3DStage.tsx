@@ -13,6 +13,9 @@ export type Card3DOption = {
   label: string;
   frontSrc: string;
   backSrc?: string | null;
+  thumbnailOffsetX?: string;
+  thumbnailOffsetY?: string;
+  thumbnailScale?: number;
 };
 
 export type Card3DStageProps = {
@@ -119,7 +122,21 @@ export function Card3DStage({
                   data-selected={selected ? "" : undefined}
                   onClick={() => setSelectedCardId(card.id)}
                 >
-                  <img src={card.frontSrc} alt="" draggable={false} />
+                  <img
+                    src={card.frontSrc}
+                    alt=""
+                    draggable={false}
+                    style={
+                      {
+                        "--thumbnail-offset-x":
+                          card.thumbnailOffsetX ?? "0%",
+                        "--thumbnail-offset-y":
+                          card.thumbnailOffsetY ?? "0%",
+                        "--thumbnail-scale":
+                          card.thumbnailScale ?? 1.5,
+                      } as CSSProperties
+                    }
+                  />
                 </button>
               );
             })}
