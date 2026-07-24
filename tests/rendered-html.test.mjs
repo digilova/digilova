@@ -43,26 +43,25 @@ test("server-renders the experiments index", async () => {
   assert.equal(response.status, 200);
 
   const html = await response.text();
-  assert.match(html, /An adaptive brief that changes with the decision/);
-  assert.match(html, /A small motion system for trust/);
-  assert.match(html, /From a loose prompt to a useful prototype/);
-  assert.match(html, /Run motion/);
-  assert.doesNotMatch(html, /Sample draft/);
-  assert.doesNotMatch(html, /AI can generate a hundred directions in seconds/);
-  assert.doesNotMatch(html, /const tones/);
-  assert.doesNotMatch(html, /href="\/experiments\/adaptive-ai-brief"/);
+  assert.match(html, /ASK UNK — Spatial Card Gallery/);
+  assert.match(html, /Explore the ASK UNK sports-card collection/);
+  assert.match(html, /\/experiments\/ask-unk\/cards\/card-01\.webp/);
+  assert.match(html, /href="\/experiments\/ask-unk-spatial-gallery"/);
+  assert.doesNotMatch(html, /file:\/\/.*card-\d+\.webp/);
+  assert.doesNotMatch(html, /An adaptive brief/);
+  assert.doesNotMatch(html, /A small motion system for trust/);
+  assert.doesNotMatch(html, /From a loose prompt to a useful prototype/);
 });
 
-for (const slug of [
-  "adaptive-ai-brief",
-  "motion-for-trust",
-  "prompt-to-prototype",
-]) {
-  test(`unlinked experiment has no detail page: ${slug}`, async () => {
-    const response = await render(`/experiments/${slug}`);
-    assert.equal(response.status, 404);
-  });
-}
+test("server-renders the ASK UNK case study", async () => {
+  const response = await render("/experiments/ask-unk-spatial-gallery");
+  assert.equal(response.status, 200);
+
+  const html = await response.text();
+  assert.match(html, /Designing a spatial card gallery for ASK UNK/);
+  assert.match(html, /The compact layout uses six rows/);
+  assert.match(html, /SpatialCardGallery/);
+});
 
 test("unknown experiment returns not found", async () => {
   const response = await render("/experiments/not-a-real-experiment");

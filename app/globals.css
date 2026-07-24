@@ -307,6 +307,10 @@ select {
   gap: 0;
 }
 
+.page-column.experiments-page {
+  width: min(800px, calc(100vw - 370px));
+}
+
 .experiment-visual[data-mode="preview"]::before,
 .experiment-visual[data-mode="preview"]::after,
 .experiment-visual[data-mode="image"]::before,
@@ -315,8 +319,12 @@ select {
 }
 
 .experiment-visual[data-mode="preview"] {
-  padding: 28px;
-  background: #f5f5f1;
+  padding: 0;
+  background: #4f46e5;
+}
+
+.ask-unk-gallery-preview {
+  width: 100%;
 }
 
 .experiment-cover {
@@ -866,6 +874,11 @@ select {
 
   .page-column {
     max-width: 560px;
+  }
+
+  .page-column.experiments-page {
+    width: auto;
+    max-width: 840px;
   }
 
   .profile-header {

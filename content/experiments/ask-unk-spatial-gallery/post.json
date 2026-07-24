@@ -1,0 +1,23 @@
+{
+  "title": "ASK UNK — Spatial Card Gallery",
+  "date": "2026-07-23",
+  "summary": "A portable interaction study for moving between a dense collection and a spatial, focus-driven view without losing context.",
+  "tags": ["Interaction design", "Spatial UI", "Prototype"],
+  "blocks": [
+    {
+      "id": "overview",
+      "type": "text",
+      "content": "Sports-card collections become difficult to navigate when every item competes for the same amount of space. This experiment explores a continuous transition between a compact six-row gallery and a free-moving spatial field.\n\nThe same cards remain visible throughout the transition, preserving orientation while allowing one card to become the focus."
+    },
+    {
+      "id": "interaction-principle",
+      "type": "callout",
+      "content": "The interaction should feel like moving through one collection—not switching between two unrelated screens."
+    },
+    {
+      "id": "controls",
+      "type": "text",
+      "content": "- Drag to pan through the collection.\n- Pinch out to enter the spatial view.\n- Pinch in to return to the compact grid.\n- Tap a card to bring it into focus.\n- Use arrow keys, plus, minus, and zero for keyboard navigation."
+    }
+  ]
+}

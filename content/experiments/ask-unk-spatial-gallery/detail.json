@@ -1,0 +1,37 @@
+{
+  "title": "Designing a spatial card gallery for ASK UNK",
+  "summary": "How a dense sports-card collection became a portable, gesture-driven component with continuity, depth, and accessible controls.",
+  "blocks": [
+    {
+      "id": "problem",
+      "type": "text",
+      "content": "A conventional grid is efficient for scanning, but it treats every card as equally important. A detail carousel creates focus, but it removes the surrounding collection. The design challenge was to support both behaviors without forcing people through a disruptive mode change.\n\nThe solution keeps every card in one stable spatial system. The compact view supports quick scanning; the expanded view introduces depth and focus while preserving the collection around the selected card."
+    },
+    {
+      "id": "geometry",
+      "type": "text",
+      "content": "The compact layout uses six rows, 88-pixel cells, and 12-pixel gaps. The spatial layout preserves each card’s portrait or landscape ratio and places cards on a fixed board. A distance-based curve scales cards from 46% at the edge to 148% at the focal point.\n\nBecause the geometry is independent from the outer canvas width, the component can sit inside a narrow product screen or a wide portfolio tile without changing the relationships between cards."
+    },
+    {
+      "id": "continuity",
+      "type": "callout",
+      "content": "Continuity does the explanatory work: the image elements remain mounted and move between layouts instead of disappearing and being recreated."
+    },
+    {
+      "id": "behavior",
+      "type": "text",
+      "content": "The component supports one-finger and mouse dragging, two-finger pinch gestures, trackpad zoom, momentum, infinite spatial wrapping, tap-to-focus, keyboard panning, and reduced-motion preferences.\n\nThe interaction intentionally stops at selection. Product-specific navigation, card details, and 3D behavior stay outside the portable component and are supplied by the host application."
+    },
+    {
+      "id": "portable",
+      "type": "text",
+      "content": "The final experiment is packaged as one self-contained React folder. It owns its CSS Module, types, sample manifest, exports, documentation, and 32 optimized card assets. It has no ASK UNK routes, contexts, aliases, APIs, Tailwind utilities, or external runtime packages."
+    },
+    {
+      "id": "usage",
+      "type": "code",
+      "language": "tsx",
+      "code": "import { SpatialCardGallery } from \"./SpatialCardGallery\";\n\nexport function GalleryExperiment() {\n  return (\n    <SpatialCardGallery\n      height={600}\n      ariaLabel=\"Explore the ASK UNK card collection\"\n    />\n  );\n}"
+    }
+  ]
+}

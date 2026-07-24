@@ -13,11 +13,11 @@ export default function ExperimentsPage() {
   const experiments = getExperiments();
 
   return (
-    <PageContainer>
+    <PageContainer className="experiments-page">
       <header className="profile-header">
         <h1>Experiments</h1>
         <p>
-          Notes, prototypes, and small tests in interaction design and AI.
+          Interactive studies in product design, spatial interfaces, and AI.
         </p>
       </header>
 
@@ -26,10 +26,6 @@ export default function ExperimentsPage() {
           <ExperimentCard experiment={experiment} key={experiment.slug} />
         ))}
       </section>
-      <p className="footer-note">
-        New posts created in the local Content Studio appear here
-        automatically.
-      </p>
     </PageContainer>
   );
 }
