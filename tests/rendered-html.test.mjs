@@ -48,7 +48,7 @@ test("server-renders the experiments index", async () => {
   assert.match(html, /\/experiments\/ask-unk\/cards\/card-01\.webp/);
   assert.equal(
     html.match(/href="\/experiments\/ask-unk-spatial-gallery"/g)?.length,
-    1,
+    undefined,
   );
   assert.doesNotMatch(html, /file:\/\/.*card-\d+\.webp/);
   assert.doesNotMatch(html, /An adaptive brief/);
@@ -56,14 +56,9 @@ test("server-renders the experiments index", async () => {
   assert.doesNotMatch(html, /From a loose prompt to a useful prototype/);
 });
 
-test("server-renders the ASK UNK case study", async () => {
+test("ASK UNK case study stays disabled", async () => {
   const response = await render("/experiments/ask-unk-spatial-gallery");
-  assert.equal(response.status, 200);
-
-  const html = await response.text();
-  assert.match(html, /Designing a spatial card gallery for ASK UNK/);
-  assert.match(html, /The compact layout uses six rows/);
-  assert.match(html, /SpatialCardGallery/);
+  assert.equal(response.status, 404);
 });
 
 test("unknown experiment returns not found", async () => {

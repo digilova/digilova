@@ -204,6 +204,7 @@ export function SpatialCardGallery({
     gridScroll: number;
     pan: Point;
     moved: boolean;
+    targetIndex: number | null;
   } | null>(null);
   const velocityRef = useRef<Point>({ x: 0, y: 0 });
   const sampleRef = useRef({ x: 0, y: 0, time: 0 });
@@ -448,35 +449,6 @@ export function SpatialCardGallery({
       });
 
       return bestIndex;
-    },
-    [cards, getExploreRect],
-  );
-
-  const hitExploreIndex = useCallback(
-    (point: Point) => {
-      let hit: number | null = null;
-      let bestDistance = Number.POSITIVE_INFINITY;
-
-      cards.forEach((_, index) => {
-        const rect = getExploreRect(index, panRef.current);
-        if (
-          point.x < rect.x ||
-          point.x > rect.x + rect.width ||
-          point.y < rect.y ||
-          point.y > rect.y + rect.height
-        ) {
-          return;
-        }
-        const centerX = rect.x + rect.width / 2;
-        const centerY = rect.y + rect.height / 2;
-        const nextDistance = Math.hypot(point.x - centerX, point.y - centerY);
-        if (nextDistance < bestDistance) {
-          bestDistance = nextDistance;
-          hit = index;
-        }
-      });
-
-      return hit;
     },
     [cards, getExploreRect],
   );
@@ -785,13 +757,18 @@ export function SpatialCardGallery({
     inertiaFrameRef.current = requestAnimationFrame(tick);
   }
 
-  function resetSinglePointer(pointerId: number, point: Point) {
+  function resetSinglePointer(
+    pointerId: number,
+    point: Point,
+    targetIndex: number | null,
+  ) {
     dragRef.current = {
       pointerId,
       start: point,
       gridScroll: gridScrollRef.current,
       pan: panRef.current,
       moved: false,
+      targetIndex,
     };
     sampleRef.current = {
       x: point.x,
@@ -814,6 +791,15 @@ export function SpatialCardGallery({
       event.clientX,
       event.clientY,
     );
+    const cardElement =
+      event.target instanceof Element
+        ? event.target.closest<HTMLElement>("[data-spatial-gallery-card]")
+        : null;
+    const parsedTargetIndex = Number(cardElement?.dataset.cardIndex);
+    const targetIndex =
+      cardElement && Number.isInteger(parsedTargetIndex)
+        ? parsedTargetIndex
+        : null;
     pointersRef.current.set(event.pointerId, point);
 
     if (pointersRef.current.size === 2) {
@@ -825,7 +811,7 @@ export function SpatialCardGallery({
       return;
     }
 
-    resetSinglePointer(event.pointerId, point);
+    resetSinglePointer(event.pointerId, point, targetIndex);
     setDragging(true);
   }
 
@@ -913,9 +899,14 @@ export function SpatialCardGallery({
         startInertia();
       } else if (!transitionRef.current && releasePoint && !completedDrag?.moved) {
         if (modeRef.current === "grid") {
-          enterExploreAt(releasePoint);
+          if (completedDrag?.targetIndex != null) {
+            startTransition(
+              "to-explore",
+              completedDrag.targetIndex,
+            );
+          }
         } else {
-          const hitIndex = hitExploreIndex(releasePoint);
+          const hitIndex = completedDrag?.targetIndex ?? null;
           if (hitIndex !== null) {
             const viewportCenter = {
               x: viewportSizeRef.current.width / 2,
@@ -944,6 +935,8 @@ export function SpatialCardGallery({
             } else {
               animatePanToIndex(hitIndex);
             }
+          } else {
+            returnToGridAt(releasePoint);
           }
         }
       }
@@ -954,7 +947,8 @@ export function SpatialCardGallery({
       const [pointerId, point] = [...pointersRef.current.entries()][0];
       pinchStartRef.current = null;
       pinchTriggeredRef.current = false;
-      resetSinglePointer(pointerId, point);
+      resetSinglePointer(pointerId, point, null);
+      if (dragRef.current) dragRef.current.moved = true;
       setDragging(true);
     }
   }
@@ -1088,7 +1082,8 @@ export function SpatialCardGallery({
     >
       <span id={instructionId} className={styles.srOnly}>
         Pinch out to enter the free-pan card field. Pinch in to return to the
-        compact grid. Drag to move cards. Use plus and minus to switch views,
+        compact grid. Tap empty space, rather than a background card, to return
+        to the grid. Drag to move cards. Use plus and minus to switch views,
         arrow keys to pan, and zero to reset.
       </span>
       <span className={styles.srOnly} aria-live="polite">
@@ -1143,6 +1138,8 @@ export function SpatialCardGallery({
             <div
               className={cardClassName}
               key={slot === undefined ? card.id : `${card.id}-slot-${slot}`}
+              data-spatial-gallery-card
+              data-card-index={index}
               style={
                 {
                   left: rect.x,

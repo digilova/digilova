@@ -43,6 +43,7 @@ export type ExperimentPost = {
   title: string;
   date: string;
   summary: string;
+  hasDetail?: boolean;
   tags?: string[];
   cover?: string;
   blocks: ExperimentBlock[];

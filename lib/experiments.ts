@@ -65,7 +65,10 @@ export function getExperiments(): ExperimentRecord[] {
       return {
         slug,
         post,
-        detail: findBySlug(detailModules, slug)?.default,
+        detail:
+          post.hasDetail === false
+            ? undefined
+            : findBySlug(detailModules, slug)?.default,
         Preview: findBySlug(previewModules, slug)?.default,
         previewSource: findBySlug(previewSources, slug),
       };

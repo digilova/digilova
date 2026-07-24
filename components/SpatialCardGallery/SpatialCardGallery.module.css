@@ -68,6 +68,11 @@
   animation-delay: var(--spatial-gallery-delay, 0ms);
 }
 
+.gridCard,
+.exploreCard {
+  pointer-events: auto;
+}
+
 .gridCard img,
 .exploreCard img,
 .morphCard img {
