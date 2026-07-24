@@ -258,12 +258,10 @@ export function SpatialCardGallery({
       GRID_PADDING * 2 + columns * cell + Math.max(0, columns - 1) * gap;
     const contentHeight =
       effectiveRows * cell + Math.max(0, effectiveRows - 1) * gap;
-    const cycleWidth = columns * (cell + gap);
     return {
       cell,
       gap,
       columns,
-      cycleWidth,
       contentWidth,
       contentHeight,
       left: Math.max(0, (viewportSize.width - layoutWidth) / 2),
@@ -303,31 +301,41 @@ export function SpatialCardGallery({
 
   const commitGridScroll = useCallback(
     (next: number) => {
-      const wrapped = positiveModulo(next, gridMetrics.cycleWidth);
-      gridScrollRef.current = wrapped;
-      setGridScroll(wrapped);
+      gridScrollRef.current = next;
+      setGridScroll(next);
     },
-    [gridMetrics.cycleWidth],
+    [],
   );
 
   const getGridRect = useCallback(
-    (index: number, scroll: number, copy = 0, wrap = false): Rect => {
-      const column = Math.floor(index / effectiveRows);
-      const row = index % effectiveRows;
-      const rawCenter =
+    (
+      index: number,
+      scroll: number,
+      slotOverride?: number,
+      nearest = false,
+    ): Rect => {
+      let slot = slotOverride ?? index;
+      if (nearest && cards.length > 0) {
+        const targetColumn =
+          (scroll +
+            viewportSize.width / 2 -
+            gridMetrics.left -
+            GRID_PADDING -
+            gridMetrics.cell / 2) /
+          (gridMetrics.cell + gridMetrics.gap);
+        const targetSlot = targetColumn * effectiveRows;
+        slot =
+          index +
+          Math.round((targetSlot - index) / cards.length) * cards.length;
+      }
+      const column = Math.floor(slot / effectiveRows);
+      const row = positiveModulo(slot, effectiveRows);
+      const center =
         gridMetrics.left +
         GRID_PADDING +
         column * (gridMetrics.cell + gridMetrics.gap) +
         gridMetrics.cell / 2 -
-        scroll +
-        copy * gridMetrics.cycleWidth;
-      const center = wrap
-        ? wrapCoordinate(
-            rawCenter,
-            gridMetrics.cycleWidth,
-            viewportSize.width / 2,
-          )
-        : rawCenter;
+        scroll;
       return {
         x: center - gridMetrics.cell / 2,
         y: gridMetrics.top + row * (gridMetrics.cell + gridMetrics.gap),
@@ -339,10 +347,10 @@ export function SpatialCardGallery({
     [
       effectiveRows,
       gridMetrics.cell,
-      gridMetrics.cycleWidth,
       gridMetrics.gap,
       gridMetrics.left,
       gridMetrics.top,
+      cards.length,
       viewportSize.width,
     ],
   );
@@ -401,24 +409,20 @@ export function SpatialCardGallery({
         gridMetrics.left -
         GRID_PADDING;
       const worldY = point.y - gridMetrics.top;
-      const column = positiveModulo(
-        Math.round(
-          (worldX - gridMetrics.cell / 2) /
-            (gridMetrics.cell + gridMetrics.gap),
-        ),
-        gridMetrics.columns,
+      const column = Math.round(
+        (worldX - gridMetrics.cell / 2) /
+          (gridMetrics.cell + gridMetrics.gap),
       );
       const row = clamp(
         Math.round((worldY - gridMetrics.cell / 2) / (gridMetrics.cell + gridMetrics.gap)),
         0,
         effectiveRows - 1,
       );
-      return clamp(column * effectiveRows + row, 0, cards.length - 1);
+      return positiveModulo(column * effectiveRows + row, cards.length);
     },
     [
       cards.length,
       gridMetrics.cell,
-      gridMetrics.columns,
       gridMetrics.gap,
       gridMetrics.left,
       gridMetrics.top,
@@ -490,27 +494,32 @@ export function SpatialCardGallery({
 
   const gridScrollForIndex = useCallback(
     (index: number) => {
-      const column = Math.floor(index / effectiveRows);
+      if (cards.length === 0) return 0;
+      const targetColumn =
+        (gridScrollRef.current +
+          viewportSize.width / 2 -
+          gridMetrics.left -
+          GRID_PADDING -
+          gridMetrics.cell / 2) /
+        (gridMetrics.cell + gridMetrics.gap);
+      const targetSlot = targetColumn * effectiveRows;
+      const slot =
+        index +
+        Math.round((targetSlot - index) / cards.length) * cards.length;
+      const column = Math.floor(slot / effectiveRows);
       const cardCenter =
         gridMetrics.left +
         GRID_PADDING +
         column * (gridMetrics.cell + gridMetrics.gap) +
         gridMetrics.cell / 2;
-      return clamp(
-        positiveModulo(
-          cardCenter - viewportSize.width / 2,
-          gridMetrics.cycleWidth,
-        ),
-        0,
-        gridMetrics.cycleWidth,
-      );
+      return cardCenter - viewportSize.width / 2;
     },
     [
       gridMetrics.cell,
       gridMetrics.gap,
       gridMetrics.left,
-      gridMetrics.cycleWidth,
       effectiveRows,
+      cards.length,
       viewportSize.width,
     ],
   );
@@ -1025,12 +1034,34 @@ export function SpatialCardGallery({
     : mode === "grid"
       ? styles.gridCard
       : styles.exploreCard;
+  const gridStep = gridMetrics.cell + gridMetrics.gap;
+  const firstGridColumn =
+    Math.floor(
+      (gridScroll - gridMetrics.left - GRID_PADDING) /
+        Math.max(gridStep, 1),
+    ) - 1;
+  const visibleGridColumns =
+    Math.ceil(viewportSize.width / Math.max(gridStep, 1)) + 3;
   const renderedCards =
-    !transition && mode === "grid"
-      ? [-1, 0, 1].flatMap((copy) =>
-          cards.map((card, index) => ({ card, index, copy })),
-        )
-      : cards.map((card, index) => ({ card, index, copy: 0 }));
+    cards.length === 0
+      ? []
+      : !transition && mode === "grid"
+        ? Array.from(
+            { length: visibleGridColumns * effectiveRows },
+            (_, offset) => {
+              const column =
+                firstGridColumn + Math.floor(offset / effectiveRows);
+              const row = offset % effectiveRows;
+              const slot = column * effectiveRows + row;
+              const index = positiveModulo(slot, cards.length);
+              return { card: cards[index], index, slot };
+            },
+          )
+        : cards.map((card, index) => ({
+            card,
+            index,
+            slot: undefined,
+          }));
 
   return (
     <div
@@ -1070,11 +1101,11 @@ export function SpatialCardGallery({
         data-spatial-gallery-explore={visibleMode === "explore" ? "" : undefined}
         aria-hidden={transition ? true : undefined}
       >
-        {renderedCards.map(({ card, index, copy }) => {
+        {renderedCards.map(({ card, index, slot }) => {
           const gridRect = getGridRect(
             index,
             transition?.gridScroll ?? gridScroll,
-            copy,
+            slot,
             Boolean(transition),
           );
           const exploreRect = getExploreRect(
@@ -1111,7 +1142,7 @@ export function SpatialCardGallery({
           return (
             <div
               className={cardClassName}
-              key={`${card.id}-${copy}`}
+              key={slot === undefined ? card.id : `${card.id}-slot-${slot}`}
               style={
                 {
                   left: rect.x,
@@ -1128,7 +1159,7 @@ export function SpatialCardGallery({
             >
               <img
                 src={card.src}
-                alt={transition || copy !== 0 ? "" : card.alt ?? ""}
+                alt={transition ? "" : card.alt ?? ""}
                 draggable={false}
                 loading="eager"
                 decoding="async"

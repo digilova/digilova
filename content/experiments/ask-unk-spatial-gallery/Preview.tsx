@@ -23,7 +23,7 @@ export default function Preview() {
     <div className="ask-unk-gallery-preview">
       <SpatialCardGallery
         cards={cards}
-        rows={3}
+        rows={5}
         height="100%"
         ariaLabel="Explore the ASK UNK sports-card collection"
       />
