@@ -35,7 +35,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
             className="site-link"
             href="mailto:simakhovdiana@gmail.com"
           >
-            Contact
+            Email
           </a>
         </nav>
       </aside>
