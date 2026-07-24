@@ -47,17 +47,17 @@ test("server-renders the experiments index", async () => {
   assert.match(html, /A small motion system for trust/);
   assert.match(html, /From a loose prompt to a useful prototype/);
   assert.match(html, /Sample draft/);
+  assert.doesNotMatch(html, /href="\/experiments\/adaptive-ai-brief"/);
 });
 
-for (const [slug, expected] of [
-  ["adaptive-ai-brief", "Interactive brief"],
-  ["motion-for-trust", "Run motion"],
-  ["prompt-to-prototype", "Static visual"],
+for (const slug of [
+  "adaptive-ai-brief",
+  "motion-for-trust",
+  "prompt-to-prototype",
 ]) {
-  test(`server-renders experiment: ${slug}`, async () => {
+  test(`unlinked experiment has no detail page: ${slug}`, async () => {
     const response = await render(`/experiments/${slug}`);
-    assert.equal(response.status, 200);
-    assert.match(await response.text(), new RegExp(expected));
+    assert.equal(response.status, 404);
   });
 }
 

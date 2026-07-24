@@ -11,6 +11,7 @@ export type ExperimentMeta = {
   date: string;
   summary: string;
   status: "draft" | "published";
+  hasDetail?: boolean;
   cover?: string;
   tags?: string[];
   sections?: ExperimentSection[];

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageContainer } from "@/components/PageContainer";
 import { WorkCard } from "@/components/WorkCard";
 import { workEntries } from "@/content/work";
 
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <main className="content-column">
+    <PageContainer>
       <header className="profile-header">
         <h1>Diana Simakhov</h1>
         <p>Designer based in Palm Beach, Florida</p>
@@ -37,6 +38,6 @@ export default function Home() {
           <WorkCard key={entry.company} entry={entry} />
         ))}
       </section>
-    </main>
+    </PageContainer>
   );
 }

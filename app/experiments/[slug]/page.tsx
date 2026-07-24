@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { PageContainer } from "@/components/PageContainer";
 import {
   formatExperimentDate,
   getExperiment,
@@ -11,7 +12,9 @@ type ExperimentPageProps = {
 };
 
 export function generateStaticParams() {
-  return getExperiments().map((experiment) => ({ slug: experiment.slug }));
+  return getExperiments()
+    .filter((experiment) => experiment.hasDetail)
+    .map((experiment) => ({ slug: experiment.slug }));
 }
 
 export async function generateMetadata({
@@ -20,7 +23,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const experiment = getExperiment(slug);
 
-  if (!experiment) return {};
+  if (!experiment?.meta.hasDetail) return {};
 
   return {
     title: experiment.meta.title,
@@ -33,13 +36,13 @@ export default async function ExperimentPage({ params }: ExperimentPageProps) {
   const { slug } = await params;
   const experiment = getExperiment(slug);
 
-  if (!experiment) notFound();
+  if (!experiment?.meta.hasDetail) notFound();
 
   const Body = experiment.default;
   const { meta } = experiment;
 
   return (
-    <main className="article-layout">
+    <PageContainer className="article-layout">
       {meta.sections && meta.sections.length > 0 && (
         <aside className="article-toc" aria-label="On this page">
           <h2>{meta.title}</h2>
@@ -71,6 +74,6 @@ export default async function ExperimentPage({ params }: ExperimentPageProps) {
           copy, code, and preview while keeping the article structure.
         </footer>
       </article>
-    </main>
+    </PageContainer>
   );
 }

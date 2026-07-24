@@ -137,7 +137,7 @@ select {
   min-height: 100vh;
 }
 
-.content-column {
+.page-column {
   width: min(var(--content), calc(100vw - 80px));
   margin: 0 auto;
   padding: var(--page-top) 0 96px;
@@ -316,7 +316,7 @@ select {
   transition: padding 180ms ease;
 }
 
-.experiment-row:hover {
+.experiment-row[href]:hover {
   padding-right: 5px;
   padding-left: 5px;
 }
@@ -351,9 +351,6 @@ select {
 
 .article-layout {
   position: relative;
-  width: min(860px, calc(100vw - 80px));
-  margin: 0 auto;
-  padding: 80px 0 120px;
 }
 
 .article-toc {
@@ -387,8 +384,8 @@ select {
 }
 
 .article {
-  width: min(var(--content), 100%);
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
 }
 
 .article-header {
@@ -763,15 +760,6 @@ select {
   .article-toc {
     display: none;
   }
-
-  .article-layout {
-    width: min(620px, calc(100vw - 56px));
-    margin: 0 auto;
-  }
-
-  .article {
-    margin: 0 auto;
-  }
 }
 
 @media (max-width: 1100px) {
@@ -811,15 +799,13 @@ select {
     margin-left: 0;
   }
 
-  .content-column,
-  .article-layout {
+  .page-column {
     width: auto;
     margin: 0 auto;
     padding: 48px 20px 80px;
   }
 
-  .content-column,
-  .article-layout {
+  .page-column {
     max-width: 560px;
   }
 
@@ -830,11 +816,6 @@ select {
   .work-visual {
     min-height: min(67vw, 330px);
     border-radius: 16px;
-  }
-
-  .article {
-    width: 100%;
-    margin: 0;
   }
 
   .article-header h1 {
