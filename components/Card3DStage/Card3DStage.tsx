@@ -200,7 +200,8 @@ export function Card3DStage({
           }
         >
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M17.65 6.35A8 8 0 1 0 20 12h-2a6 6 0 1 1-1.76-4.24L13 11h7V4l-2.35 2.35Z" />
+            <rect x="5.5" y="7.5" width="13" height="9" rx="1.5" />
+            <path d="M7.5 4.5H5a2 2 0 0 0-2 2V9m-1.8-1.8L3 9l1.8-1.8M16.5 19.5H19a2 2 0 0 0 2-2V15m1.8 1.8L21 15l-1.8 1.8" />
           </svg>
         </button>
         <span className={styles.instructions}>Drag to rotate the card</span>
