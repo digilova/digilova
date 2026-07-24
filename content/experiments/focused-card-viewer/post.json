@@ -1,14 +1,14 @@
 {
   "title": "ASK UNK — Focused Card Viewer",
   "date": "2026-07-24",
-  "summary": "Drag the Lamine Yamal card through the 498×498 card canvas to reveal its back, or use the rotate control to change its orientation.",
+  "summary": "Choose Yamal, Haaland, or Messi, then drag the card through the 498×498 canvas to reveal its back or change its orientation.",
   "hasDetail": false,
   "tags": ["Interaction design", "Collectibles", "Component"],
   "blocks": [
     {
       "id": "overview",
       "type": "text",
-      "content": "This experiment pulls the card presentation out of the ASK UNK detail screen and removes the surrounding product interface.\n\nThe result is intentionally simple: one card, one dark stage, and no visible controls."
+      "content": "This experiment pulls the card presentation out of the ASK UNK detail screen and removes the surrounding product interface.\n\nChoose between Yamal, Haaland, and Messi from the thumbnail rail, then explore the selected card on one dark canvas."
     },
     {
       "id": "interaction",

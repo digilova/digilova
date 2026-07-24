@@ -39,3 +39,6 @@ By default, the physical card remains portrait for both faces. A landscape back
 scan is rotated onto that portrait back surface. The bottom-right rotate control
 lets the viewer explicitly switch the physical card between portrait and
 landscape.
+
+Pass a `cards` array to show the optional top-left thumbnail rail. Each option
+supplies its player label and front/back texture pair.

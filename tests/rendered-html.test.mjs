@@ -44,8 +44,10 @@ test("server-renders the experiments index", async () => {
 
   const html = await response.text();
   assert.match(html, /ASK UNK — Focused Card Viewer/);
-  assert.match(html, /Lamine Yamal card viewer/);
+  assert.match(html, /Interactive player card viewer/);
   assert.match(html, /\/experiments\/yamal\/yamal-front\.webp/);
+  assert.match(html, /\/experiments\/players\/haaland-front\.webp/);
+  assert.match(html, /\/experiments\/players\/messi-front\.webp/);
   assert.equal(
     html.match(/href="\/experiments\/focused-card-viewer"/g)?.length,
     undefined,
