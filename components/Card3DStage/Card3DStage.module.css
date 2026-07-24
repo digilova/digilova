@@ -72,7 +72,13 @@
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 1.7;
+  stroke-width: 2;
+  transform-origin: center;
+  transition: transform 200ms ease;
+}
+
+.rotateButton[aria-pressed="true"] svg {
+  transform: scaleX(-1);
 }
 
 .playerPicker {
@@ -157,6 +163,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .rotateButton {
+    transition: none;
+  }
+
+  .rotateButton svg {
     transition: none;
   }
 
