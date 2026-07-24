@@ -2,8 +2,8 @@ export const CARD_W = 2.5;
 export const CARD_H = 3.5;
 /** Depth for inset cards inside holders (toploader, slab, etc.). */
 export const CARD_D = 0.045;
-/** Bare / raw card stock depth — matches studio Card Holder bare thickness. */
-export const RAW_CARD_D = CARD_D;
+/** Bare card stock is half the depth used for cards inside holders. */
+export const RAW_CARD_D = CARD_D * 0.5;
 export const RAW_CARD_RADIUS = 0.075;
 
 export type CardOrientation = "portrait" | "landscape";
