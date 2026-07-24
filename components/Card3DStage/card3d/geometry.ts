@@ -32,3 +32,24 @@ export function makeRoundedCardFaceGeometry(width: number, height: number, radiu
   geometry.computeVertexNormals();
   return geometry;
 }
+
+export function makeFlatRoundedCardBodyGeometry(
+  width: number,
+  height: number,
+  radius: number,
+  depth: number,
+) {
+  const geometry = new THREE.ExtrudeGeometry(
+    makeRoundedRectShape(width, height, radius),
+    {
+      depth,
+      bevelEnabled: false,
+      curveSegments: 18,
+      steps: 1,
+    },
+  );
+
+  geometry.translate(0, 0, -depth / 2);
+  geometry.computeVertexNormals();
+  return geometry;
+}

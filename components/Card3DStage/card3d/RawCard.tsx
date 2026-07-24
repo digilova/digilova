@@ -1,4 +1,3 @@
-import { RoundedBox } from "@react-three/drei";
 import { useLayoutEffect, useMemo, useRef } from "react";
 import type * as THREE from "three";
 import { CARD_LANDSCAPE_ASPECT, CARD_PORTRAIT_ASPECT } from "../cardImageAspect";
@@ -9,7 +8,10 @@ import {
   resolveCardDimensionsFromAspect,
   type CardOrientation,
 } from "./constants";
-import { makeRoundedCardFaceGeometry } from "./geometry";
+import {
+  makeFlatRoundedCardBodyGeometry,
+  makeRoundedCardFaceGeometry,
+} from "./geometry";
 import type { CardImageUrls } from "./types";
 import { useCardTexture } from "./textures";
 
@@ -32,7 +34,7 @@ function RoundedCardFace({
 }) {
   const materialRef = useRef<THREE.MeshPhysicalMaterial>(null);
   const geometry = useMemo(
-    () => makeRoundedCardFaceGeometry(faceWidth, faceHeight, RAW_CARD_RADIUS * 0.86),
+    () => makeRoundedCardFaceGeometry(faceWidth, faceHeight, RAW_CARD_RADIUS),
     [faceHeight, faceWidth],
   );
 
@@ -73,18 +75,28 @@ export function RawCard({
   const back = useCardTexture("back", backImageUrl, preferredAspect);
   const cardAspect = preferredAspect;
   const { width, height } = resolveCardDimensionsFromAspect(cardAspect);
-  const faceWidth = width - 0.038;
-  const faceHeight = height - 0.038;
+  const faceWidth = width;
+  const faceHeight = height;
   const meshKey = `${width.toFixed(3)}x${height.toFixed(3)}`;
+  const bodyGeometry = useMemo(
+    () =>
+      makeFlatRoundedCardBodyGeometry(
+        width,
+        height,
+        RAW_CARD_RADIUS,
+        RAW_CARD_D,
+      ),
+    [height, width],
+  );
 
   return (
     <group key={meshKey}>
-      <RoundedBox args={[width, height, RAW_CARD_D]} radius={RAW_CARD_RADIUS} smoothness={18}>
+      <mesh geometry={bodyGeometry}>
         <meshStandardMaterial color="#eee7dc" roughness={0.78} metalness={0} />
-      </RoundedBox>
+      </mesh>
       <RoundedCardFace
         map={front.texture}
-        position={[0, 0, RAW_CARD_D / 2 + 0.002]}
+        position={[0, 0, RAW_CARD_D / 2 + 0.0005]}
         roughness={0.34}
         faceWidth={faceWidth}
         faceHeight={faceHeight}
@@ -92,7 +104,7 @@ export function RawCard({
       />
       <RoundedCardFace
         map={back.texture}
-        position={[0, 0, -RAW_CARD_D / 2 - 0.002]}
+        position={[0, 0, -RAW_CARD_D / 2 - 0.0005]}
         rotation={[0, Math.PI, 0]}
         roughness={0.44}
         faceWidth={faceWidth}
