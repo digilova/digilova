@@ -103,6 +103,10 @@
   opacity: 1;
 }
 
+.playerButton:hover {
+  transform: scale(calc(var(--thumbnail-proximity-scale, 1) * 1.1));
+}
+
 .playerButton:active {
   transform: scale(calc(var(--thumbnail-proximity-scale, 1) * 0.95));
 }

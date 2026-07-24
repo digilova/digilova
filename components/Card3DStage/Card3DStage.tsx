@@ -87,7 +87,7 @@ export function Card3DStage({
     if (event.pointerType === "touch") return;
 
     const influenceRadius = 96;
-    const maximumLift = 0.12;
+    const maximumLift = 0.04;
 
     playerPickerRef.current
       ?.querySelectorAll<HTMLElement>("[data-player-thumbnail]")
