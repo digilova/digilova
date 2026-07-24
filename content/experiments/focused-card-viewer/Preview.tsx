@@ -1,16 +1,14 @@
 "use client";
 
-import { CardMediaStage } from "@/components/CardMediaStage";
+import { Card3DStage } from "@/components/Card3DStage";
 
 export default function Preview() {
   return (
-    <CardMediaStage
+    <Card3DStage
       frontSrc="/experiments/yamal/yamal-front.webp"
       backSrc="/experiments/yamal/yamal-back.webp"
-      frontAlt="Lamine Yamal Topps Now card front"
-      backAlt="Lamine Yamal Topps Now card back"
       size={498}
-      ariaLabel="Lamine Yamal card viewer. Activate to show the other side."
+      ariaLabel="Lamine Yamal card viewer. Drag in any direction to turn the 3D card and reveal its back."
     />
   );
 }

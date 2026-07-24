@@ -1,7 +1,7 @@
 {
   "title": "ASK UNK — Focused Card Viewer",
   "date": "2026-07-24",
-  "summary": "Tap the 498×498 black stage to flip the supplied Lamine Yamal card between its front and back.",
+  "summary": "Drag the Lamine Yamal card through a 498×498 studio stage to turn it naturally, catch the light, and reveal its back.",
   "hasDetail": false,
   "tags": ["Interaction design", "Collectibles", "Component"],
   "blocks": [
@@ -13,7 +13,7 @@
     {
       "id": "interaction",
       "type": "callout",
-      "content": "Tap, click, or press Enter to flip between the supplied front and back images."
+      "content": "Drag in any direction to rotate the physical card. Orbit damping, idle motion, card depth, and a moving studio shine reproduce the ASK UNK interaction."
     }
   ]
 }
