@@ -90,6 +90,7 @@
   box-shadow: 0 6px 16px rgb(0 0 0 / 20%);
   cursor: pointer;
   opacity: 0.5;
+  transform: scale(var(--thumbnail-proximity-scale, 1));
   transition:
     border-color 160ms ease,
     opacity 160ms ease,
@@ -103,7 +104,7 @@
 }
 
 .playerButton:active {
-  transform: scale(0.95);
+  transform: scale(calc(var(--thumbnail-proximity-scale, 1) * 0.95));
 }
 
 .playerButton:focus-visible {
@@ -148,6 +149,7 @@
   }
 
   .playerButton {
+    transform: none;
     transition: none;
   }
 

@@ -1,6 +1,11 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import {
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import { CARD_PORTRAIT_ASPECT } from "./cardImageAspect";
 import { BareCard3DViewer } from "./BareCard3DViewer";
 import type { CardOrientation } from "./card3d";
@@ -62,12 +67,45 @@ export function Card3DStage({
   );
   const [orientation, setOrientation] =
     useState<CardOrientation>("portrait");
+  const playerPickerRef = useRef<HTMLDivElement>(null);
   const selectedCard =
     cardOptions.find((card) => card.id === selectedCardId) ?? cardOptions[0];
   const cardAspect =
     orientation === "landscape"
       ? 1 / CARD_PORTRAIT_ASPECT
       : CARD_PORTRAIT_ASPECT;
+  const resetThumbnailScale = () => {
+    playerPickerRef.current
+      ?.querySelectorAll<HTMLElement>("[data-player-thumbnail]")
+      .forEach((button) =>
+        button.style.removeProperty("--thumbnail-proximity-scale"),
+      );
+  };
+  const handleThumbnailProximity = (
+    event: ReactPointerEvent<HTMLDivElement>,
+  ) => {
+    if (event.pointerType === "touch") return;
+
+    const influenceRadius = 96;
+    const maximumLift = 0.12;
+
+    playerPickerRef.current
+      ?.querySelectorAll<HTMLElement>("[data-player-thumbnail]")
+      .forEach((button) => {
+        const bounds = button.getBoundingClientRect();
+        const distance = Math.hypot(
+          event.clientX - (bounds.left + bounds.width / 2),
+          event.clientY - (bounds.top + bounds.height / 2),
+        );
+        const proximity = Math.max(0, 1 - distance / influenceRadius);
+        const scale = 1 + proximity * maximumLift;
+
+        button.style.setProperty(
+          "--thumbnail-proximity-scale",
+          scale.toFixed(3),
+        );
+      });
+  };
 
   return (
     <>
@@ -96,6 +134,8 @@ export function Card3DStage({
         } as CSSProperties}
         role="group"
         aria-label={ariaLabel}
+        onPointerMove={handleThumbnailProximity}
+        onPointerLeave={resetThumbnailScale}
       >
         <BareCard3DViewer
           frontImageUrl={selectedCard.frontSrc}
@@ -106,6 +146,7 @@ export function Card3DStage({
         {cardOptions.length > 1 ? (
           <div
             className={styles.playerPicker}
+            ref={playerPickerRef}
             role="group"
             aria-label="Choose a player"
           >
@@ -120,6 +161,7 @@ export function Card3DStage({
                   aria-label={`Show ${card.label} card`}
                   aria-pressed={selected}
                   data-selected={selected ? "" : undefined}
+                  data-player-thumbnail=""
                   onClick={() => setSelectedCardId(card.id)}
                 >
                   <img
