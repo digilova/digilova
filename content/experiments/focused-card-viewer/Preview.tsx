@@ -31,7 +31,7 @@ export default function Preview() {
           backSrc: "/experiments/players/messi-back.webp",
           thumbnailOffsetX: "-29%",
           thumbnailOffsetY: "48%",
-          thumbnailScale: 1.45,
+          thumbnailScale: 1.6,
         },
       ]}
       initialCardId="yamal"

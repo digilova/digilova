@@ -119,10 +119,16 @@
   max-width: none;
   height: auto;
   border-radius: inherit;
+  filter: grayscale(1);
   transform: translate(-50%, -50%);
+  transition: filter 160ms ease;
   pointer-events: none;
   user-select: none;
   -webkit-user-drag: none;
+}
+
+.playerButton[data-selected] img {
+  filter: none;
 }
 
 .instructions {
@@ -142,6 +148,10 @@
   }
 
   .playerButton {
+    transition: none;
+  }
+
+  .playerButton img {
     transition: none;
   }
 }
