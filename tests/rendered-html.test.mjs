@@ -46,7 +46,9 @@ test("server-renders the experiments index", async () => {
   assert.match(html, /An adaptive brief that changes with the decision/);
   assert.match(html, /A small motion system for trust/);
   assert.match(html, /From a loose prompt to a useful prototype/);
-  assert.match(html, /Sample draft/);
+  assert.match(html, /AI can generate a hundred directions in seconds/);
+  assert.match(html, /Run motion/);
+  assert.doesNotMatch(html, /Sample draft/);
   assert.doesNotMatch(html, /href="\/experiments\/adaptive-ai-brief"/);
 });
 

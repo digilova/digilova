@@ -290,9 +290,7 @@ select {
   margin-bottom: 52px;
 }
 
-.page-heading .eyebrow,
-.article-kicker,
-.draft-label {
+.page-heading .eyebrow {
   color: var(--accent);
   font-size: 10px;
   font-weight: 500;
@@ -309,23 +307,20 @@ select {
   border-top: 1px solid var(--line);
 }
 
-.experiment-row {
+.experiment-post {
+  padding: 34px 0 48px;
+  border-bottom: 1px solid var(--line);
+}
+
+.experiment-post-header {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 24px;
   align-items: start;
-  padding: 22px 0 24px;
-  border-bottom: 1px solid var(--line);
-  text-decoration: none;
-  transition: padding 180ms ease;
+  margin-bottom: 28px;
 }
 
-.experiment-row[href]:hover {
-  padding-right: 5px;
-  padding-left: 5px;
-}
-
-.experiment-row h2 {
+.experiment-post-header h2 {
   margin: 0 0 4px;
   color: var(--ink);
   font-size: 15px;
@@ -333,24 +328,52 @@ select {
   line-height: 1.35;
 }
 
-.experiment-row p {
+.experiment-post-header p {
   margin: 0;
   color: var(--muted);
   line-height: 1.55;
 }
 
-.experiment-row time {
+.experiment-post-header time {
   padding-top: 2px;
   color: var(--faint);
   font-size: 11px;
   white-space: nowrap;
 }
 
-.row-labels {
-  display: flex;
-  gap: 10px;
+.experiment-post-body > *:last-child {
+  margin-bottom: 0;
+}
+
+.experiment-post-body hr {
+  margin: 32px 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.experiment-post-body ul {
+  margin: 0 0 20px;
+  padding-left: 20px;
+}
+
+.experiment-post .code-preview-grid {
+  grid-template-columns: 1fr;
+}
+
+.experiment-post .code-preview-grid .code-block {
+  border-right: 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.experiment-detail-link {
+  display: inline-flex;
+  gap: 7px;
   align-items: center;
-  margin-bottom: 6px;
+  margin-top: 28px;
+  color: var(--ink);
+  font-size: 12px;
+  text-decoration-color: var(--line);
+  text-underline-offset: 3px;
 }
 
 .article-layout {

@@ -17,11 +17,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.8,
     },
-    ...getExperiments().map((experiment) => ({
-      url: `${origin}/experiments/${experiment.slug}`,
-      lastModified: new Date(experiment.date),
-      changeFrequency: "monthly" as const,
-      priority: 0.7,
-    })),
+    ...getExperiments()
+      .filter((experiment) => experiment.detail)
+      .map((experiment) => ({
+        url: `${origin}/experiments/${experiment.slug}`,
+        lastModified: new Date(experiment.post.date),
+        changeFrequency: "monthly" as const,
+        priority: 0.7,
+      })),
   ];
 }

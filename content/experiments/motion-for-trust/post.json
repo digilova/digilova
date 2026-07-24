@@ -1,0 +1,23 @@
+{
+  "title": "A small motion system for trust",
+  "date": "2026-07-09",
+  "summary": "Testing how timing, continuity, and reduced motion can make state changes feel easier to follow.",
+  "tags": ["Motion", "Interaction", "Accessibility"],
+  "blocks": [
+    {
+      "id": "continuity",
+      "type": "text",
+      "content": "When an interface changes state, motion can show that the new thing came from the old thing. That continuity is especially useful in high-consideration experiences, where an unexplained jump can make the system feel unpredictable.\n\nThis experiment uses one object, one spatial move, and one change in shape."
+    },
+    {
+      "id": "constraint",
+      "type": "callout",
+      "content": "Motion should preserve context, not call attention to itself. If the transition does not explain a relationship, it probably does not need to be there."
+    },
+    {
+      "id": "principles",
+      "type": "text",
+      "content": "- Keep the origin and destination visible.\n- Avoid overlapping transitions with different meanings.\n- Prefer a single continuous object over a crossfade.\n- Let timing follow the distance traveled."
+    }
+  ]
+}

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Digilova Content Studio</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="studio-header">
+      <div>
+        <span class="studio-mark">DS</span>
+        <div>
+          <strong>Content Studio</strong>
+          <span>Local experiment authoring</span>
+        </div>
+      </div>
+      <a href="http://localhost:3000/experiments" target="_blank">Open site ↗</a>
+    </header>
+
+    <main class="studio-layout">
+      <aside class="post-sidebar">
+        <button class="primary-button" id="new-post" type="button">New experiment</button>
+        <div class="post-list" id="post-list" aria-label="Existing experiments"></div>
+      </aside>
+
+      <form class="editor" id="post-form">
+        <div class="editor-heading">
+          <div>
+            <p>Experiment</p>
+            <h1 id="editor-title">New experiment</h1>
+          </div>
+          <span class="save-status" id="save-status" role="status"></span>
+        </div>
+
+        <section class="editor-card metadata-grid">
+          <label class="wide">
+            Title
+            <input id="title" name="title" required placeholder="A small experiment about…" />
+          </label>
+          <label>
+            Date
+            <input id="date" name="date" type="date" required />
+          </label>
+          <label>
+            Tags
+            <input id="tags" name="tags" placeholder="AI, motion, trust" />
+          </label>
+          <label class="wide">
+            Summary
+            <textarea id="summary" name="summary" rows="3" required placeholder="One sentence that introduces the experiment."></textarea>
+          </label>
+        </section>
+
+        <section class="editor-section">
+          <div class="section-heading">
+            <div>
+              <h2>Post content</h2>
+              <p>Add and reorder text, images, code, callouts, and dividers.</p>
+            </div>
+            <div class="add-menu" data-target="blocks"></div>
+          </div>
+          <div class="blocks" id="blocks"></div>
+        </section>
+
+        <section class="editor-section">
+          <div class="section-heading">
+            <div>
+              <h2>Interactive preview</h2>
+              <p>Optional. Paste one self-contained React component with a default export.</p>
+            </div>
+          </div>
+          <textarea class="code-editor" id="preview-source" spellcheck="false" rows="12" placeholder='"use client";&#10;&#10;export default function Preview() {&#10;  return <button>Try it</button>;&#10;}'></textarea>
+        </section>
+
+        <section class="editor-section">
+          <label class="detail-toggle">
+            <input id="has-detail" type="checkbox" />
+            <span>
+              <strong>Add a deeper case study</strong>
+              <small>A link appears only when deeper content exists.</small>
+            </span>
+          </label>
+          <div id="detail-editor" hidden>
+            <div class="section-heading detail-heading">
+              <h2>Deeper content</h2>
+              <div class="add-menu" data-target="detailBlocks"></div>
+            </div>
+            <div class="blocks" id="detail-blocks"></div>
+          </div>
+        </section>
+
+        <footer class="editor-actions">
+          <span>Files are saved only to this local project.</span>
+          <button class="primary-button" type="submit">Save experiment</button>
+        </footer>
+      </form>
+    </main>
+
+    <template id="add-buttons">
+      <button type="button" data-add="text">+ Text</button>
+      <button type="button" data-add="image">+ Image</button>
+      <button type="button" data-add="code">+ Code</button>
+      <button type="button" data-add="callout">+ Callout</button>
+      <button type="button" data-add="divider">+ Divider</button>
+    </template>
+    <script src="/app.js"></script>
+  </body>
+</html>
