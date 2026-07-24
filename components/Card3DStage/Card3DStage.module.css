@@ -42,14 +42,18 @@
   background: rgb(255 255 255 / 10%);
   box-shadow: 0 8px 20px rgb(0 0 0 / 24%);
   cursor: pointer;
+  opacity: 0.5;
   transition:
     background-color 160ms ease,
+    opacity 160ms ease,
     transform 160ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 
 .rotateButton:hover {
+  opacity: 1;
   background: rgb(255 255 255 / 18%);
+  transform: scale(1.1);
 }
 
 .rotateButton:active {
