@@ -55,19 +55,21 @@
         <section class="editor-section">
           <div class="section-heading">
             <div>
-              <h2>Post content</h2>
-              <p>Add and reorder text, images, code, callouts, and dividers.</p>
+              <h2>Landing visual</h2>
+              <p>Drop a cover image, add an interactive preview below, or leave both empty for an automatic visual.</p>
             </div>
-            <div class="add-menu" data-target="blocks"></div>
           </div>
-          <div class="blocks" id="blocks"></div>
+          <label class="image-drop" id="cover-drop">
+            <span id="cover-label">Drop a cover image here or click to choose</span>
+            <input id="cover-file" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/avif" />
+          </label>
         </section>
 
         <section class="editor-section">
           <div class="section-heading">
             <div>
-              <h2>Interactive preview</h2>
-              <p>Optional. Paste one self-contained React component with a default export.</p>
+              <h2>Interactive card preview</h2>
+              <p>Optional. Used as the landing visual when no cover image is supplied. Source code appears only in a deeper case study.</p>
             </div>
           </div>
           <textarea class="code-editor" id="preview-source" spellcheck="false" rows="12" placeholder='"use client";&#10;&#10;export default function Preview() {&#10;  return <button>Try it</button>;&#10;}'></textarea>

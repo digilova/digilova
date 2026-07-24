@@ -4,6 +4,7 @@ const state = {
   blocks: [],
   detailBlocks: [],
   assets: new Map(),
+  cover: "",
 };
 
 const form = document.querySelector("#post-form");
@@ -15,6 +16,9 @@ const fields = {
   preview: document.querySelector("#preview-source"),
   hasDetail: document.querySelector("#has-detail"),
   detailEditor: document.querySelector("#detail-editor"),
+  coverDrop: document.querySelector("#cover-drop"),
+  coverFile: document.querySelector("#cover-file"),
+  coverLabel: document.querySelector("#cover-label"),
   status: document.querySelector("#save-status"),
   editorTitle: document.querySelector("#editor-title"),
 };
@@ -95,8 +99,19 @@ function setImageFile(block, file) {
   const cleanName = file.name.replace(/[^a-zA-Z0-9._-]+/g, "-");
   state.assets.set(cleanName, file);
   block.src = `./assets/${cleanName}`;
-  renderBlocks("blocks");
   renderBlocks("detailBlocks");
+}
+
+function setCoverFile(file) {
+  if (!file) return;
+  if (!file.type.startsWith("image/") || file.type === "image/svg+xml") {
+    setStatus("Use PNG, JPG, GIF, WebP, or AVIF images.", true);
+    return;
+  }
+  const cleanName = file.name.replace(/[^a-zA-Z0-9._-]+/g, "-");
+  state.assets.set(cleanName, file);
+  state.cover = `./assets/${cleanName}`;
+  fields.coverLabel.textContent = `Cover: ${cleanName} · click or drop to replace`;
 }
 
 function imageEditor(block) {
@@ -248,9 +263,10 @@ function renderPostList() {
 
 function resetEditor() {
   state.originalSlug = null;
-  state.blocks = [newBlock("text")];
+  state.blocks = [];
   state.detailBlocks = [];
   state.assets.clear();
+  state.cover = "";
   fields.title.value = "";
   fields.date.value = today();
   fields.summary.value = "";
@@ -258,9 +274,9 @@ function resetEditor() {
   fields.preview.value = "";
   fields.hasDetail.checked = false;
   fields.detailEditor.hidden = true;
+  fields.coverLabel.textContent = "Drop a cover image here or click to choose";
   fields.editorTitle.textContent = "New experiment";
   setStatus("");
-  renderBlocks("blocks");
   renderBlocks("detailBlocks");
   renderPostList();
   fields.title.focus();
@@ -271,6 +287,7 @@ function loadPost(post) {
   state.blocks = structuredClone(post.blocks ?? []);
   state.detailBlocks = structuredClone(post.detailBlocks ?? []);
   state.assets.clear();
+  state.cover = post.cover ?? "";
   fields.title.value = post.title;
   fields.date.value = post.date;
   fields.summary.value = post.summary;
@@ -278,9 +295,11 @@ function loadPost(post) {
   fields.preview.value = post.previewSource ?? "";
   fields.hasDetail.checked = state.detailBlocks.length > 0;
   fields.detailEditor.hidden = !fields.hasDetail.checked;
+  fields.coverLabel.textContent = state.cover
+    ? `Cover: ${state.cover.split("/").pop()} · click or drop to replace`
+    : "Drop a cover image here or click to choose";
   fields.editorTitle.textContent = post.title;
   setStatus("");
-  renderBlocks("blocks");
   renderBlocks("detailBlocks");
   renderPostList();
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -314,6 +333,7 @@ async function save(event) {
     summary: fields.summary.value,
     tags: fields.tags.value,
     blocks: state.blocks,
+    cover: state.cover,
     detailBlocks: fields.hasDetail.checked ? state.detailBlocks : [],
     previewSource: fields.preview.value,
     assets,
@@ -353,6 +373,24 @@ fields.hasDetail.addEventListener("change", () => {
     state.detailBlocks.push(newBlock("text"));
     renderBlocks("detailBlocks");
   }
+});
+fields.coverFile.addEventListener("change", () => {
+  setCoverFile(fields.coverFile.files[0]);
+});
+for (const eventName of ["dragenter", "dragover"]) {
+  fields.coverDrop.addEventListener(eventName, (event) => {
+    event.preventDefault();
+    fields.coverDrop.dataset.over = "true";
+  });
+}
+for (const eventName of ["dragleave", "drop"]) {
+  fields.coverDrop.addEventListener(eventName, (event) => {
+    event.preventDefault();
+    fields.coverDrop.dataset.over = "false";
+  });
+}
+fields.coverDrop.addEventListener("drop", (event) => {
+  setCoverFile(event.dataTransfer.files[0]);
 });
 fields.title.addEventListener("input", () => {
   fields.editorTitle.textContent = fields.title.value || "New experiment";

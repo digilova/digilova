@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { PageContainer } from "@/components/PageContainer";
-import { ExperimentContent } from "@/components/experiment/ExperimentContent";
+import { ExperimentCard } from "@/components/experiment/ExperimentCard";
 import { getExperiments } from "@/lib/experiments";
 
 export const metadata: Metadata = {
@@ -14,8 +14,7 @@ export default function ExperimentsPage() {
 
   return (
     <PageContainer>
-      <header className="page-heading">
-        <p className="eyebrow">Small explorations</p>
+      <header className="profile-header">
         <h1>Experiments</h1>
         <p>
           Notes, prototypes, and small tests in interaction design and AI.
@@ -24,7 +23,7 @@ export default function ExperimentsPage() {
 
       <section className="experiments-list" aria-label="Experiment posts">
         {experiments.map((experiment) => (
-          <ExperimentContent experiment={experiment} key={experiment.slug} />
+          <ExperimentCard experiment={experiment} key={experiment.slug} />
         ))}
       </section>
       <p className="footer-note">

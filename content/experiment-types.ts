@@ -44,6 +44,7 @@ export type ExperimentPost = {
   date: string;
   summary: string;
   tags?: string[];
+  cover?: string;
   blocks: ExperimentBlock[];
 };
 

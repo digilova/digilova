@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type {
   ExperimentBlock,
   ExperimentRecord,
@@ -90,7 +89,7 @@ export function ExperimentContent({
     <article className={detail ? "article experiment-post" : "experiment-post"}>
       <header className="experiment-post-header">
         <div>
-          <h2>{content?.title ?? post.title}</h2>
+          <h1>{content?.title ?? post.title}</h1>
           <p>{content?.summary ?? post.summary}</p>
         </div>
         <time dateTime={post.date}>{formatExperimentDate(post.date)}</time>
@@ -98,18 +97,13 @@ export function ExperimentContent({
 
       <div className="article-body experiment-post-body">
         <Blocks blocks={blocks} slug={slug} />
-        {!detail && Preview && previewSource && (
+        {detail && Preview && previewSource && (
           <CodePreview code={previewSource} language="tsx">
             <Preview />
           </CodePreview>
         )}
       </div>
 
-      {!detail && experiment.detail && (
-        <Link className="experiment-detail-link" href={`/experiments/${slug}`}>
-          Read full case study <span aria-hidden="true">→</span>
-        </Link>
-      )}
     </article>
   );
 }

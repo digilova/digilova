@@ -83,6 +83,9 @@ function validatePayload(payload) {
   }
   validateBlocks(payload.blocks, "Post blocks");
   if (payload.detailBlocks) validateBlocks(payload.detailBlocks, "Detail blocks");
+  if (payload.cover && !payload.cover.startsWith("./assets/")) {
+    throw new Error("Cover must point to the post assets folder");
+  }
   if (
     payload.previewSource?.trim() &&
     !/export\s+default/.test(payload.previewSource)
@@ -183,6 +186,7 @@ export async function savePost(payload) {
         .split(",")
         .map((tag) => tag.trim())
         .filter(Boolean),
+      cover: payload.cover || undefined,
       blocks: payload.blocks,
     };
 
