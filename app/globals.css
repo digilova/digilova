@@ -387,7 +387,7 @@ select {
 }
 
 .article {
-  width: min(550px, 100%);
+  width: min(var(--content), 100%);
   margin: 0 auto;
 }
 
