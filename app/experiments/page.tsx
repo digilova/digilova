@@ -22,7 +22,7 @@ export default function ExperimentsPage() {
       </header>
 
       <section className="experiments-list" aria-label="Experiment posts">
-        {experiments.map((experiment, index) => (
+        {experiments.map((experiment) => (
           <Link
             className="experiment-row"
             key={experiment.slug}
@@ -30,9 +30,6 @@ export default function ExperimentsPage() {
           >
             <div>
               <div className="row-labels">
-                <span className="row-index">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
                 {experiment.status === "draft" && (
                   <span className="draft-label">Sample draft</span>
                 )}
