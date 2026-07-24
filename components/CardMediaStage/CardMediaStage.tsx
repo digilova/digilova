@@ -78,22 +78,24 @@ export function CardMediaStage({
       onClick={canFlip ? toggleSide : undefined}
       onKeyDown={handleKeyDown}
     >
-      <img
-        className={`${styles.media} ${styles.front}`}
-        src={frontSrc}
-        alt={side === "front" ? frontAlt : ""}
-        aria-hidden={side !== "front"}
-        draggable={false}
-      />
-      {backSrc && (
+      <div className={styles.card}>
         <img
-          className={`${styles.media} ${styles.back}`}
-          src={backSrc}
-          alt={side === "back" ? backAlt : ""}
-          aria-hidden={side !== "back"}
+          className={`${styles.media} ${styles.front}`}
+          src={frontSrc}
+          alt={side === "front" ? frontAlt : ""}
+          aria-hidden={side !== "front"}
           draggable={false}
         />
-      )}
+        {backSrc && (
+          <img
+            className={`${styles.media} ${styles.back}`}
+            src={backSrc}
+            alt={side === "back" ? backAlt : ""}
+            aria-hidden={side !== "back"}
+            draggable={false}
+          />
+        )}
+      </div>
       <span className={styles.srOnly} aria-live="polite">
         Showing card {side}
       </span>

@@ -1,7 +1,7 @@
 {
   "title": "ASK UNK — Focused Card Viewer",
   "date": "2026-07-24",
-  "summary": "Tap the 498×498 black stage to move between the supplied Lamine Yamal card front and back.",
+  "summary": "Tap the 498×498 black stage to flip the supplied Lamine Yamal card between its front and back.",
   "hasDetail": false,
   "tags": ["Interaction design", "Collectibles", "Component"],
   "blocks": [
@@ -13,7 +13,7 @@
     {
       "id": "interaction",
       "type": "callout",
-      "content": "Tap, click, or press Enter to move between the supplied front and back images."
+      "content": "Tap, click, or press Enter to flip between the supplied front and back images."
     }
   ]
 }

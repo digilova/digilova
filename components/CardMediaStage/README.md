@@ -12,7 +12,8 @@ export function CardExperiment() {
 ```
 
 The bundled Yamal front and back images are functional defaults. Activate the
-stage by clicking, tapping, pressing Enter, or pressing Space to switch sides.
+stage by clicking, tapping, pressing Enter, or pressing Space to flip the card
+in 3D.
 
 ```tsx
 <CardMediaStage
