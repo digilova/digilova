@@ -176,10 +176,14 @@ select {
 
 .work-list {
   display: grid;
-  gap: 8px;
+  gap: 0;
 }
 
 .work-card {
+  padding-top: 60px;
+}
+
+.work-card:first-child {
   padding-top: 20px;
 }
 
