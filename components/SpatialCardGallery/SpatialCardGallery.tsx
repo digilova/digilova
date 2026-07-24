@@ -82,6 +82,21 @@ function distance(a: Point, b: Point) {
   return Math.hypot(b.x - a.x, b.y - a.y);
 }
 
+function clientPointToViewportPoint(
+  viewport: HTMLDivElement,
+  clientX: number,
+  clientY: number,
+): Point {
+  const bounds = viewport.getBoundingClientRect();
+  const scaleX = bounds.width / viewport.clientWidth || 1;
+  const scaleY = bounds.height / viewport.clientHeight || 1;
+
+  return {
+    x: (clientX - bounds.left) / scaleX,
+    y: (clientY - bounds.top) / scaleY,
+  };
+}
+
 function lerp(from: number, to: number, progress: number) {
   return from + (to - from) * progress;
 }
@@ -664,11 +679,11 @@ export function SpatialCardGallery({
     if (!viewport) return;
 
     const handleWheel = (event: WheelEvent) => {
-      const bounds = viewport.getBoundingClientRect();
-      const point = {
-        x: event.clientX - bounds.left,
-        y: event.clientY - bounds.top,
-      };
+      const point = clientPointToViewportPoint(
+        viewport,
+        event.clientX,
+        event.clientY,
+      );
 
       if (event.ctrlKey || event.metaKey) {
         if (modeRef.current === "grid" && event.deltaY < 0) {
@@ -758,8 +773,11 @@ export function SpatialCardGallery({
     viewport.setPointerCapture(event.pointerId);
     stopInertia();
 
-    const bounds = viewport.getBoundingClientRect();
-    const point = { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
+    const point = clientPointToViewportPoint(
+      viewport,
+      event.clientX,
+      event.clientY,
+    );
     pointersRef.current.set(event.pointerId, point);
 
     if (pointersRef.current.size === 2) {
@@ -779,8 +797,11 @@ export function SpatialCardGallery({
     if (!pointersRef.current.has(event.pointerId) || transitionRef.current) return;
     const viewport = viewportRef.current;
     if (!viewport) return;
-    const bounds = viewport.getBoundingClientRect();
-    const point = { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
+    const point = clientPointToViewportPoint(
+      viewport,
+      event.clientX,
+      event.clientY,
+    );
     pointersRef.current.set(event.pointerId, point);
 
     if (pointersRef.current.size === 2) {
@@ -830,9 +851,12 @@ export function SpatialCardGallery({
 
   function handlePointerEnd(event: PointerEvent<HTMLDivElement>) {
     const viewport = viewportRef.current;
-    const bounds = viewport?.getBoundingClientRect();
-    const releasePoint = bounds
-      ? { x: event.clientX - bounds.left, y: event.clientY - bounds.top }
+    const releasePoint = viewport
+      ? clientPointToViewportPoint(
+          viewport,
+          event.clientX,
+          event.clientY,
+        )
       : null;
     const completedDrag = dragRef.current;
     pointersRef.current.delete(event.pointerId);

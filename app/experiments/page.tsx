@@ -13,7 +13,7 @@ export default function ExperimentsPage() {
   const experiments = getExperiments();
 
   return (
-    <PageContainer className="experiments-page">
+    <PageContainer>
       <header className="profile-header">
         <h1>Experiments</h1>
         <p>
