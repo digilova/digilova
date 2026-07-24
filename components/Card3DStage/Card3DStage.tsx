@@ -1,8 +1,9 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import { CARD_PORTRAIT_ASPECT } from "./cardImageAspect";
 import { BareCard3DViewer } from "./BareCard3DViewer";
+import type { CardOrientation } from "./card3d";
 import defaultBack from "./assets/yamal-back.webp";
 import defaultFront from "./assets/yamal-front.webp";
 import styles from "./Card3DStage.module.css";
@@ -31,6 +32,13 @@ export function Card3DStage({
   className,
   style,
 }: Card3DStageProps) {
+  const [orientation, setOrientation] =
+    useState<CardOrientation>("portrait");
+  const cardAspect =
+    orientation === "landscape"
+      ? 1 / CARD_PORTRAIT_ASPECT
+      : CARD_PORTRAIT_ASPECT;
+
   return (
     <>
       <link rel="preload" as="image" href={frontSrc} />
@@ -42,15 +50,34 @@ export function Card3DStage({
           background,
           ...style,
         } as CSSProperties}
-        role="img"
+        role="group"
         aria-label={ariaLabel}
       >
         <BareCard3DViewer
           frontImageUrl={frontSrc}
           backImageUrl={backSrc}
-          orientation="portrait"
-          aspectRatio={CARD_PORTRAIT_ASPECT}
+          orientation={orientation}
+          aspectRatio={cardAspect}
         />
+        <button
+          className={styles.rotateButton}
+          type="button"
+          aria-label={
+            orientation === "portrait"
+              ? "Rotate card to landscape"
+              : "Rotate card to portrait"
+          }
+          aria-pressed={orientation === "landscape"}
+          onClick={() =>
+            setOrientation((current) =>
+              current === "portrait" ? "landscape" : "portrait",
+            )
+          }
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M17.65 6.35A8 8 0 1 0 20 12h-2a6 6 0 1 1-1.76-4.24L13 11h7V4l-2.35 2.35Z" />
+          </svg>
+        </button>
         <span className={styles.instructions}>Drag to rotate the card</span>
       </div>
     </>

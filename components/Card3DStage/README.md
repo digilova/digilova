@@ -35,5 +35,7 @@ export function CardExperiment() {
 />
 ```
 
-The physical card remains portrait for both faces. A landscape back scan is
-rotated onto the portrait back surface instead of changing the card's geometry.
+By default, the physical card remains portrait for both faces. A landscape back
+scan is rotated onto that portrait back surface. The bottom-right rotate control
+lets the viewer explicitly switch the physical card between portrait and
+landscape.

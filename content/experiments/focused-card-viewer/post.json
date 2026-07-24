@@ -1,7 +1,7 @@
 {
   "title": "ASK UNK — Focused Card Viewer",
   "date": "2026-07-24",
-  "summary": "Drag the Lamine Yamal card through a 498×498 studio stage to turn it naturally, catch the light, and reveal its back.",
+  "summary": "Drag the Lamine Yamal card through the 498×498 card canvas to reveal its back, or use the rotate control to change its orientation.",
   "hasDetail": false,
   "tags": ["Interaction design", "Collectibles", "Component"],
   "blocks": [
@@ -13,7 +13,7 @@
     {
       "id": "interaction",
       "type": "callout",
-      "content": "Drag in any direction to rotate the physical card. Orbit damping, idle motion, card depth, and a moving studio shine reproduce the ASK UNK interaction."
+      "content": "Drag in any direction to rotate the physical card. Use the bottom-right rotate control to switch between portrait and landscape. Orbit damping, idle motion, card depth, and a moving studio shine reproduce the ASK UNK interaction."
     }
   ]
 }
