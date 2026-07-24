@@ -1,0 +1,19 @@
+{
+  "title": "ASK UNK — Focused Card Viewer",
+  "date": "2026-07-24",
+  "summary": "Tap the 498×498 black stage to move between the supplied Lamine Yamal card front and back.",
+  "hasDetail": false,
+  "tags": ["Interaction design", "Collectibles", "Component"],
+  "blocks": [
+    {
+      "id": "overview",
+      "type": "text",
+      "content": "This experiment pulls the card presentation out of the ASK UNK detail screen and removes the surrounding product interface.\n\nThe result is intentionally simple: one card, one dark stage, and no visible controls."
+    },
+    {
+      "id": "interaction",
+      "type": "callout",
+      "content": "Tap, click, or press Enter to move between the supplied front and back images."
+    }
+  ]
+}
