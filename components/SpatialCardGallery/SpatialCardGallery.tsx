@@ -220,6 +220,7 @@ export function SpatialCardGallery({
   const [pan, setPan] = useState<Point>({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const [transition, setTransition] = useState<TransitionState | null>(null);
+  const [gridSettled, setGridSettled] = useState(false);
   const [measuredAspects, setMeasuredAspects] = useState<Record<string, number>>({});
 
   const exploreSize = useMemo(() => exploreBoardSize(cards.length), [cards.length]);
@@ -554,6 +555,7 @@ export function SpatialCardGallery({
         commitPan(state.explorePan);
       } else {
         modeRef.current = "grid";
+        setGridSettled(true);
         setMode("grid");
         commitGridScroll(state.gridScroll);
       }
@@ -1074,6 +1076,7 @@ export function SpatialCardGallery({
       aria-label={ariaLabel}
       aria-describedby={instructionId}
       data-gallery-mode={transition ? "transition" : mode}
+      data-grid-settled={gridSettled ? "" : undefined}
       onKeyDown={handleKeyDown}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}

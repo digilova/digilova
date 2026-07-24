@@ -68,6 +68,12 @@
   animation-delay: var(--spatial-gallery-delay, 0ms);
 }
 
+.viewport[data-grid-settled] .gridCard {
+  opacity: 1;
+  transform: none;
+  animation: none;
+}
+
 .gridCard,
 .exploreCard {
   pointer-events: auto;
