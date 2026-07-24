@@ -49,13 +49,7 @@ export function ExperimentCard({
 
   return (
     <article className="work-card experiment-card">
-      {experiment.detail ? (
-        <Link href={`/experiments/${slug}`} aria-label={post.title}>
-          {visual}
-        </Link>
-      ) : (
-        visual
-      )}
+      {visual}
       <div className="work-meta">
         <p className="experiment-card-date">
           {formatExperimentDate(post.date, true)}

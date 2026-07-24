@@ -46,7 +46,10 @@ test("server-renders the experiments index", async () => {
   assert.match(html, /ASK UNK — Spatial Card Gallery/);
   assert.match(html, /Explore the ASK UNK sports-card collection/);
   assert.match(html, /\/experiments\/ask-unk\/cards\/card-01\.webp/);
-  assert.match(html, /href="\/experiments\/ask-unk-spatial-gallery"/);
+  assert.equal(
+    html.match(/href="\/experiments\/ask-unk-spatial-gallery"/g)?.length,
+    1,
+  );
   assert.doesNotMatch(html, /file:\/\/.*card-\d+\.webp/);
   assert.doesNotMatch(html, /An adaptive brief/);
   assert.doesNotMatch(html, /A small motion system for trust/);

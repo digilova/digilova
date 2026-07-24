@@ -659,9 +659,12 @@ export function SpatialCardGallery({
 
   useEffect(() => {
     if (initialMode !== "explore" || cards.length === 0) return;
-    const initialPan = centeredPanForIndex(0);
-    panRef.current = initialPan;
-    setPan(initialPan);
+    const frame = requestAnimationFrame(() => {
+      const initialPan = centeredPanForIndex(0);
+      panRef.current = initialPan;
+      setPan(initialPan);
+    });
+    return () => cancelAnimationFrame(frame);
   }, [cards.length, centeredPanForIndex, initialMode]);
 
   useEffect(() => {
