@@ -4,6 +4,13 @@
   margin-bottom: 28px;
 }
 
+/* Fill the modal's first visible body viewport (overlay pad + header + body top pad). */
+.heroFill {
+  width: 100%;
+  height: min(920px, calc(100dvh - 152px));
+  max-height: calc(100dvh - 152px);
+}
+
 .canvas {
   width: min(100%, 820px);
   overflow: hidden;
@@ -14,9 +21,22 @@
     0 1px 3px rgba(10, 20, 23, 0.05);
 }
 
+.heroFill .canvas {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+}
+
 .canvas > * {
   width: 100%;
   max-width: 100%;
+}
+
+.heroFill .canvas > * {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  aspect-ratio: auto;
 }
 
 .content {
@@ -179,9 +199,23 @@
   gap: 12px;
 }
 
+@media (max-width: 900px) {
+  .heroFill {
+    /* overlay 16*2 + header ~50 + body top 18 */
+    height: min(920px, calc(100dvh - 100px));
+    max-height: calc(100dvh - 100px);
+  }
+}
+
 @media (max-width: 560px) {
   .hero {
     margin-bottom: 20px;
+  }
+
+  .heroFill {
+    /* overlay 10*2 + header ~46 + body top 14 */
+    height: min(920px, calc(100dvh - 80px));
+    max-height: calc(100dvh - 80px);
   }
 
   .canvas {

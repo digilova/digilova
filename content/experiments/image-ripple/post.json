@@ -1,14 +1,14 @@
 {
   "title": "Image Ripple",
   "date": "2026-07-27",
-  "summary": "I wanted to experiment with a ripple animation sitting on top of an image, and make it scalable enough that you can swap in any photo and see what happens.",
+  "summary": "A cover-cropped photograph with radial WebGL ripples — play, loop, cursor-follow origin, and scrubbers for speed, count, and width up to 500%.",
   "hasDetail": false,
   "tags": ["Motion", "WebGL", "Image treatment"],
   "blocks": [
     {
       "id": "overview",
       "type": "text",
-      "content": "I wanted to experiment with a ripple animation sitting on top of an image, and make it scalable enough that you can swap in any photo and see what happens.\n\nIn this one you can play with speed, how many ripples go out, and how wide they are, so you get real control over the feel instead of a fixed treatment."
+      "content": "I wanted a ripple sitting on top of a photo that you could actually steer — and that stayed sharp when you swapped the image.\n\nThis one cover-crops whatever photo you drop in, then lets you play/pause, loop, radiate from the center or the cursor, and scrub speed, how many ripples go out, and band width up to 500%."
     },
     {
       "id": "accessibility",

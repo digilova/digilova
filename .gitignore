@@ -30,6 +30,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -41,3 +42,20 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+
+
+# Local-only / public upstream skills — keep on disk, don't ship in PRs
+.agents/
+skills-lock.json
+
+# Unused scaffold and leftover Next.js starter assets
+/examples/
+/app/chatgpt-auth.ts
+/components/experiment/AdaptiveBriefDemo.tsx
+/components/experiment/TrustMotionDemo.tsx
+/public/file.svg
+/public/globe.svg
+/public/window.svg
+
+# Replaced experiment asset — keep local only
+/content/experiments/image-ripple/assets/boats.webp

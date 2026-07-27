@@ -1,5 +1,5 @@
 import { Suspense, useEffect, useRef } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { ContactShadows, Environment, OrbitControls } from "@react-three/drei";
 import {
   AnimatedBareCard,
@@ -31,6 +31,64 @@ function CanvasReadyMarker({ onReady }: { onReady: () => void }) {
   return null;
 }
 
+/**
+ * Allow two-finger / mouse-wheel page scrolling over the canvas.
+ * Still let trackpad pinch (wheel + ctrl) and touch pinch zoom the card.
+ */
+function PinchZoomOnly() {
+  const { gl } = useThree();
+
+  useEffect(() => {
+    const element = gl.domElement;
+
+    const scrollAncestor = (deltaY: number) => {
+      let node: HTMLElement | null = element.parentElement;
+      while (node && node !== document.documentElement) {
+        const { overflowY } = window.getComputedStyle(node);
+        const canScroll =
+          (overflowY === "auto" ||
+            overflowY === "scroll" ||
+            overflowY === "overlay") &&
+          node.scrollHeight > node.clientHeight + 1;
+        if (canScroll) {
+          node.scrollTop += deltaY;
+          return;
+        }
+        node = node.parentElement;
+      }
+      window.scrollBy(0, deltaY);
+    };
+
+    const onWheel = (event: WheelEvent) => {
+      // macOS trackpad pinch is delivered as wheel+ctrl; leave that for zoom.
+      if (event.ctrlKey || event.metaKey) return;
+
+      // Two-finger scroll / mouse wheel: don't dolly the camera, scroll the page.
+      event.stopImmediatePropagation();
+      const delta =
+        event.deltaMode === WheelEvent.DOM_DELTA_LINE
+          ? event.deltaY * 16
+          : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
+            ? event.deltaY * window.innerHeight
+            : event.deltaY;
+      scrollAncestor(delta);
+    };
+
+    element.addEventListener("wheel", onWheel, {
+      capture: true,
+      passive: true,
+    });
+
+    return () => {
+      element.removeEventListener("wheel", onWheel, {
+        capture: true,
+      });
+    };
+  }, [gl]);
+
+  return null;
+}
+
 function EmbeddedBareCardScene({
   backImageUrl,
   frontImageUrl,
@@ -56,6 +114,7 @@ function EmbeddedBareCardScene({
 
   return (
     <>
+      <PinchZoomOnly />
       <CardViewerCameraFit
         aspectRatio={aspectRatio}
         orientation={orientation}
@@ -99,6 +158,7 @@ export type BareCard3DViewerProps = {
   orientation?: CardOrientation;
   aspectRatio?: number;
   fitInsets?: CardViewerFitInsets;
+  opticalCenterOffsetPx?: number;
   revealed?: boolean;
   fadeDurationMs?: number;
   fadeDelayMs?: number;
@@ -113,6 +173,7 @@ export function BareCard3DViewer({
   orientation = "portrait",
   aspectRatio = CARD_PORTRAIT_ASPECT,
   fitInsets = CARD_VIEWER_DEFAULT_INSETS,
+  opticalCenterOffsetPx = 0,
   revealed = true,
   fadeDurationMs = 420,
   fadeDelayMs = 0,
@@ -120,13 +181,19 @@ export function BareCard3DViewer({
   onSceneReady,
 }: BareCard3DViewerProps) {
   const { pointerRef, onPointerMove, onPointerLeave } = useCardPointerTracking();
+  const shift = opticalCenterOffsetPx;
 
   return (
     <div
       className={className}
       style={{
         position: "absolute",
-        inset: 0,
+        top: 0,
+        bottom: 0,
+        // Study: shift the WebGL layer right so the card balances the HTML
+        // player/rotate rail. Landing keeps shift at 0 (true geometric center).
+        left: shift,
+        right: -shift,
         cursor: "grab",
         touchAction: "none",
         opacity: revealed ? 1 : 0,

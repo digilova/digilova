@@ -21,19 +21,31 @@ export function ExperimentStudyBody({
   preview,
   snippets,
   onCopyPrompt,
-  promptCopied,
+  promptCopied = false,
+  fillViewport = false,
 }: {
   title: string;
   date: string;
   guide: ExperimentStudyGuide;
   preview: ReactNode;
-  snippets: { code: string; language?: string }[];
-  onCopyPrompt: () => void;
-  promptCopied: boolean;
+  snippets?: { code: string; language?: string }[];
+  onCopyPrompt?: () => void;
+  promptCopied?: boolean;
+  /** Stretch the study canvas to the modal's visible body height. */
+  fillViewport?: boolean;
 }) {
+  const showCopyPrompt = typeof onCopyPrompt === "function";
+  const showSnippets = Boolean(snippets && snippets.length > 0);
+  const showGuide =
+    guide.howToBuild.length > 0 || showSnippets;
+
   return (
     <>
-      <div className={styles.hero}>
+      <div
+        className={[styles.hero, fillViewport ? styles.heroFill : ""]
+          .filter(Boolean)
+          .join(" ")}
+      >
         <div className={styles.canvas}>{preview}</div>
       </div>
 
@@ -46,62 +58,74 @@ export function ExperimentStudyBody({
               <p key={paragraph}>{paragraph}</p>
             ))}
           </div>
-          <div className={styles.metaRow}>
-            <ul className={styles.tags}>
-              {guide.tags.map((tag) => (
-                <li className={styles.tag} key={tag}>
-                  {tag}
-                </li>
-              ))}
-            </ul>
-            <button
-              aria-label="Copy LLM build prompt"
-              className={styles.copyPrompt}
-              onClick={onCopyPrompt}
-              type="button"
-            >
-              {promptCopied ? "Copied" : "Copy prompt"}
-              <svg
-                aria-hidden="true"
-                className={styles.copyIcon}
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1.5"
-                viewBox="0 0 16 16"
-              >
-                <rect height="9.5" rx="1.5" width="9.5" x="4.75" y="1.75" />
-                <path d="M2.75 5.25v7a1.5 1.5 0 0 0 1.5 1.5h7" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div className={styles.guide}>
-          <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>
-              {guide.sectionTitles.howToBuild}
-            </h3>
-            <ul className={styles.steps}>
-              {guide.howToBuild.map((step) => (
-                <li key={step}>{step}</li>
-              ))}
-            </ul>
-          </section>
-
-          <section className={styles.section} aria-label="Code snippets">
-            <div className={styles.snippets}>
-              {snippets.map((snippet, index) => (
-                <CodeBlock
-                  code={snippet.code}
-                  key={`${snippet.language ?? "tsx"}-${index}`}
-                  language={snippet.language ?? "tsx"}
-                />
-              ))}
+          {guide.tags.length > 0 || showCopyPrompt ? (
+            <div className={styles.metaRow}>
+              {guide.tags.length > 0 ? (
+                <ul className={styles.tags}>
+                  {guide.tags.map((tag) => (
+                    <li className={styles.tag} key={tag}>
+                      {tag}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              {showCopyPrompt ? (
+                <button
+                  aria-label="Copy LLM build prompt"
+                  className={styles.copyPrompt}
+                  onClick={onCopyPrompt}
+                  type="button"
+                >
+                  {promptCopied ? "Copied" : "Copy prompt"}
+                  <svg
+                    aria-hidden="true"
+                    className={styles.copyIcon}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.5"
+                    viewBox="0 0 16 16"
+                  >
+                    <rect height="9.5" rx="1.5" width="9.5" x="4.75" y="1.75" />
+                    <path d="M2.75 5.25v7a1.5 1.5 0 0 0 1.5 1.5h7" />
+                  </svg>
+                </button>
+              ) : null}
             </div>
-          </section>
+          ) : null}
         </div>
+
+        {showGuide ? (
+          <div className={styles.guide}>
+            {guide.howToBuild.length > 0 ? (
+              <section className={styles.section}>
+                <h3 className={styles.sectionTitle}>
+                  {guide.sectionTitles.howToBuild}
+                </h3>
+                <ul className={styles.steps}>
+                  {guide.howToBuild.map((step) => (
+                    <li key={step}>{step}</li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+
+            {showSnippets ? (
+              <section className={styles.section} aria-label="Code snippets">
+                <div className={styles.snippets}>
+                  {snippets!.map((snippet, index) => (
+                    <CodeBlock
+                      code={snippet.code}
+                      key={`${snippet.language ?? "tsx"}-${index}`}
+                      language={snippet.language ?? "tsx"}
+                    />
+                  ))}
+                </div>
+              </section>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </>
   );

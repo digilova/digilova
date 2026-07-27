@@ -133,6 +133,41 @@ select {
   font-weight: 500;
 }
 
+.site-link-locked {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.site-link-lock {
+  display: inline-grid;
+  width: 10px;
+  height: 10px;
+  place-items: center;
+  opacity: 0.55;
+}
+
+.site-link-lock svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.site-link-locked:hover .site-link-lock,
+.site-link-locked[data-active="true"] .site-link-lock {
+  opacity: 0.8;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
 .site-main {
   min-height: 100vh;
 }
@@ -180,6 +215,101 @@ select {
 .work-list {
   display: grid;
   gap: 0;
+}
+
+.work-gate {
+  display: grid;
+  min-height: min(60vh, 520px);
+  place-items: center;
+  padding: 48px 0 24px;
+}
+
+.work-gate-card {
+  display: grid;
+  width: min(100%, 320px);
+  gap: 10px;
+  justify-items: start;
+}
+
+.work-gate-lock {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  margin-bottom: 4px;
+  place-items: center;
+  color: var(--muted);
+}
+
+.work-gate-lock svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+.work-gate-card h1 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.work-gate-card > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.work-gate-form {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.work-gate-form input {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+}
+
+.work-gate-form input:focus-visible {
+  outline: 2px solid rgba(42, 182, 143, 0.45);
+  outline-offset: 1px;
+}
+
+.work-gate-form button {
+  appearance: none;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--ink);
+  color: #fff;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.work-gate-form button:hover {
+  background: var(--deep-ink);
+}
+
+.work-gate-form button:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
+.work-gate-error {
+  margin: 2px 0 0;
+  color: #a33b3b;
+  font-size: 12px;
 }
 
 .work-card {
@@ -334,6 +464,14 @@ select {
   height: auto;
   aspect-ratio: 1;
   overflow: hidden;
+  border-radius: 20px;
+  clip-path: inset(0 round 20px);
+  isolation: isolate;
+}
+
+/* Match the ripple study canvas: landscape frame, grid stays centered inside. */
+.ask-unk-gallery-study {
+  aspect-ratio: 1730 / 1154;
 }
 
 .experiment-cover {
@@ -902,6 +1040,15 @@ select {
 
   .experiment-preview {
     border-radius: 16px;
+  }
+
+  .ask-unk-gallery-preview {
+    border-radius: 16px;
+    clip-path: inset(0 round 16px);
+  }
+
+  .ask-unk-gallery-study {
+    aspect-ratio: 1730 / 1154;
   }
 
   .article-header h1 {

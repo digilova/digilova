@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element -- the native image is the fallback and WebGL texture source. */
 import { useEffect, useId, useRef, useState, type CSSProperties, type DragEvent } from "react";
-import backgroundImage from "./assets/boats.webp";
+import backgroundImage from "./assets/azulejos.webp";
 import styles from "./Preview.module.css";
 
 type DetailControl = "ripples" | "speed" | "width";
@@ -14,6 +14,16 @@ export type RippleSettings = {
   loop: boolean;
   cursorFollow: boolean;
 };
+
+const CONTROL_RANGES = {
+  ripples: { min: 1, max: 5, step: 1 },
+  speed: { min: 0.5, max: 2, step: 0.05 },
+  width: { min: 0.75, max: 5, step: 0.01 },
+} as const;
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
 
 const vertexShaderSource = `
   attribute vec2 a_position;
@@ -135,8 +145,8 @@ const fragmentShaderSource = `
 
 
 const defaultImageSrc = backgroundImage.src;
-const textureWidth = 1730;
-const textureHeight = 1154;
+const defaultImageWidth = backgroundImage.width;
+const defaultImageHeight = backgroundImage.height;
 
 function coverCropImage(
   image: HTMLImageElement,
@@ -151,10 +161,12 @@ function coverCropImage(
     return canvas;
   }
 
-  const scale = Math.max(
-    targetWidth / image.naturalWidth,
-    targetHeight / image.naturalHeight,
-  );
+  // Slight overscan so rounded clips and subpixels never flash empty edges.
+  const scale =
+    Math.max(
+      targetWidth / image.naturalWidth,
+      targetHeight / image.naturalHeight,
+    ) * 1.03;
   const drawWidth = image.naturalWidth * scale;
   const drawHeight = image.naturalHeight * scale;
   context.drawImage(
@@ -165,6 +177,17 @@ function coverCropImage(
     drawHeight,
   );
   return canvas;
+}
+
+function textureSizeForDisplay(displayWidth: number, displayHeight: number) {
+  const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+  let width = Math.max(1, Math.round(displayWidth * pixelRatio));
+  let height = Math.max(1, Math.round(displayHeight * pixelRatio));
+  const maxSide = 1536;
+  const fit = Math.min(1, maxSide / Math.max(width, height));
+  width = Math.max(1, Math.round(width * fit));
+  height = Math.max(1, Math.round(height * fit));
+  return { width, height };
 }
 
 function createShader(
@@ -404,8 +427,24 @@ export default function Preview({
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
 
-    uploadImageRef.current = (source) => {
-      const covered = coverCropImage(source, textureWidth, textureHeight);
+    let sourceImage: HTMLImageElement | null = null;
+    let lastTextureKey = "";
+    let animationFrame = 0;
+    let disposed = false;
+    let textureReady = false;
+
+    const uploadCovered = (source: HTMLImageElement) => {
+      sourceImage = source;
+      const displayWidth = Math.max(1, Math.round(canvas.clientWidth));
+      const displayHeight = Math.max(1, Math.round(canvas.clientHeight));
+      const { width, height } = textureSizeForDisplay(
+        displayWidth,
+        displayHeight,
+      );
+      const key = `${source.src}|${width}x${height}`;
+      if (key === lastTextureKey && textureReady) return;
+      lastTextureKey = key;
+      const covered = coverCropImage(source, width, height);
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.texImage2D(
         gl.TEXTURE_2D,
@@ -418,9 +457,7 @@ export default function Preview({
       textureReady = true;
     };
 
-    let animationFrame = 0;
-    let disposed = false;
-    let textureReady = false;
+    uploadImageRef.current = uploadCovered;
 
     const render = (time: number) => {
       if (disposed) return;
@@ -461,6 +498,9 @@ export default function Preview({
         canvas.width = renderWidth;
         canvas.height = renderHeight;
         gl.viewport(0, 0, renderWidth, renderHeight);
+        if (sourceImage) {
+          uploadCovered(sourceImage);
+        }
       }
 
       if (!textureReady) {
@@ -611,32 +651,41 @@ export default function Preview({
     ripples: {
       label: "Ripples",
       value: String(rippleCount),
-      min: 1,
-      max: 5,
-      step: 1,
+      ...CONTROL_RANGES.ripples,
       numericValue: rippleCount,
-      setValue: (next: number) => setRippleCount(Math.round(next)),
+      setValue: (next: number) =>
+        setRippleCount(
+          Math.round(
+            clamp(next, CONTROL_RANGES.ripples.min, CONTROL_RANGES.ripples.max),
+          ),
+        ),
     },
     speed: {
       label: "Speed",
       value: `${speed.toFixed(2).replace(/\.?0+$/, "")}×`,
-      min: 0.5,
-      max: 2,
-      step: 0.05,
+      ...CONTROL_RANGES.speed,
       numericValue: speed,
       setValue: (next: number) =>
-        setSpeed(Number(Math.min(2, Math.max(0.5, next)).toFixed(2))),
+        setSpeed(
+          Number(
+            clamp(next, CONTROL_RANGES.speed.min, CONTROL_RANGES.speed.max).toFixed(
+              2,
+            ),
+          ),
+        ),
     },
     width: {
       label: "Width",
       value: `${Math.round(rippleWidth * 100)}%`,
-      min: 0.75,
-      max: 2.25,
-      step: 0.01,
+      ...CONTROL_RANGES.width,
       numericValue: rippleWidth,
       setValue: (next: number) =>
         setRippleWidth(
-          Number(Math.min(2.25, Math.max(0.75, next)).toFixed(2)),
+          Number(
+            clamp(next, CONTROL_RANGES.width.min, CONTROL_RANGES.width.max).toFixed(
+              2,
+            ),
+          ),
         ),
     },
   };
@@ -709,8 +758,8 @@ export default function Preview({
         role="img"
         aria-label={
           cursorFollow
-            ? "Miniature sailboats seen through a cursor-following three-dimensional water ripple"
-            : "Miniature sailboats seen through a center-radiating three-dimensional water ripple"
+            ? "Blue-and-white azulejo tiles seen through a cursor-following three-dimensional water ripple"
+            : "Blue-and-white azulejo tiles seen through a center-radiating three-dimensional water ripple"
         }
         data-cursor-follow={cursorFollow}
         data-drop-active={dropActive}
@@ -740,20 +789,20 @@ export default function Preview({
           alt=""
           className={styles.base}
           decoding="async"
-          height={1154}
+          height={defaultImageHeight}
           loading="eager"
           src={defaultImageSrc}
-          width={1730}
+          width={defaultImageWidth}
         />
         {imageSrc !== defaultImageSrc ? (
           <img
             alt=""
             className={styles.base}
             decoding="async"
-            height={1154}
+            height={defaultImageHeight}
             loading="lazy"
             src={imageSrc}
-            width={1730}
+            width={defaultImageWidth}
           />
         ) : null}
         <canvas className={styles.surface} ref={canvasRef} aria-hidden="true" />
@@ -836,7 +885,7 @@ export default function Preview({
             >
               <span className={styles.loopIcon} data-on={loopEnabled} aria-hidden="true">
                 <svg
-                  className={styles.loopOn}
+                  className={styles.stateOn}
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -847,7 +896,7 @@ export default function Preview({
                   <path d="M9.828 9.172a4 4 0 1 0 0 5.656a10 10 0 0 0 2.172-2.828a10 10 0 0 1 2.172-2.828a4 4 0 1 1 0 5.656a10 10 0 0 1-2.172-2.828a10 10 0 0 0-2.172-2.828" />
                 </svg>
                 <svg
-                  className={styles.loopOff}
+                  className={styles.stateOff}
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -879,7 +928,7 @@ export default function Preview({
                 aria-hidden="true"
               >
                 <svg
-                  className={styles.cursorOn}
+                  className={styles.stateOn}
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -890,7 +939,7 @@ export default function Preview({
                   <path d="M7.904 17.563a1.2 1.2 0 0 0 2.228.308l2.09-3.093l4.907 4.907a1.067 1.067 0 0 0 1.509 0l1.047-1.047a1.067 1.067 0 0 0 0-1.509l-4.907-4.907l3.113-2.09a1.2 1.2 0 0 0-.309-2.228l-13.582-3.904l3.904 13.563" />
                 </svg>
                 <svg
-                  className={styles.cursorOff}
+                  className={styles.stateOff}
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"

@@ -1,16 +1,10 @@
 "use client";
 
 import Preview from "@/content/experiments/focused-card-viewer/Preview";
-import {
-  buildFocusedCardLlmPrompt,
-  buildFocusedCardMountSnippet,
-  buildFocusedCardOptionsSnippet,
-  focusedCardGuide,
-} from "@/content/experiments/focused-card-viewer/guide";
+import { focusedCardGuide } from "@/content/experiments/focused-card-viewer/guide";
 import { ExperimentModal } from "./ExperimentModal";
 import { ExperimentStudyBody } from "./ExperimentStudyBody";
 import type { ExperimentStudyModalProps } from "./ExperimentStudyCard";
-import { useCopyPrompt } from "./useCopyPrompt";
 
 export function FocusedCardStudyModal({
   open,
@@ -19,8 +13,6 @@ export function FocusedCardStudyModal({
   title,
   date,
 }: ExperimentStudyModalProps) {
-  const { promptCopied, copyPrompt } = useCopyPrompt();
-
   return (
     <ExperimentModal
       onClose={onClose}
@@ -31,21 +23,7 @@ export function FocusedCardStudyModal({
       <ExperimentStudyBody
         date={date}
         guide={focusedCardGuide}
-        onCopyPrompt={() => {
-          void copyPrompt(buildFocusedCardLlmPrompt());
-        }}
-        preview={<Preview />}
-        promptCopied={promptCopied}
-        snippets={[
-          {
-            code: buildFocusedCardMountSnippet(),
-            language: "tsx",
-          },
-          {
-            code: buildFocusedCardOptionsSnippet(),
-            language: "ts",
-          },
-        ]}
+        preview={<Preview variant="study" />}
         title={title}
       />
     </ExperimentModal>

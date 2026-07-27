@@ -18,14 +18,14 @@ export default function ExperimentsPage() {
         <h1>Experiments</h1>
         <div className="intro-copy">
           <p>
-            Hey — I’m Diana Simakhov, a design leader. This is where I
-            experiment with AI, try UI/UX ideas, and write down what I’ve been
+            Hi, I’m Diana. Excited you’re here. This is where I
+            experiment with AI, try UX/UI ideas, and write down what I’ve been
             figuring out.
           </p>
           <p>
-            I’m not an AI pro. I’ve just been poking at a lot of this lately,
-            and I want some of these patterns to be repeatable enough to rebuild
-            later — for me, and for anyone else who wants to try them.
+            I keep poking around and exploring these ideas, and I want the
+            patterns to be repeatable enough to rebuild later — for me, and for
+            anyone else who wants to try them.
           </p>
         </div>
       </header>

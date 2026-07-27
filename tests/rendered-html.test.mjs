@@ -25,16 +25,20 @@ async function render(pathname = "/") {
   );
 }
 
-test("server-renders the work page", async () => {
+test("home redirects toward experiments", async () => {
   const response = await render("/");
+  assert.ok([200, 307, 308].includes(response.status));
+});
+
+test("work page stays password gated", async () => {
+  const response = await render("/work");
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /Diana Simakhov/);
-  assert.match(html, /Marcus by Goldman Sachs/);
-  assert.match(html, /Coinbase/);
-  assert.match(html, /Experiments/);
+  assert.match(html, /Password protected|This section is private/i);
+  assert.match(html, /password/i);
+  assert.doesNotMatch(html, /Marcus by Goldman Sachs/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
 });
 
@@ -43,7 +47,8 @@ test("server-renders the experiments index", async () => {
   assert.equal(response.status, 200);
 
   const html = await response.text();
-  assert.doesNotMatch(html, /href="\/"[^>]*>\s*Work\s*<\/a>/);
+  assert.match(html, /href="\/work"/);
+  assert.match(html, /password protected/i);
   assert.match(html, /aria-label="Diana Simakhov — Experiments"/);
   assert.match(html, /Focused Card Viewer/);
   assert.match(html, /Interactive player card viewer/);
