@@ -10,19 +10,15 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="site-shell">
       <aside className="site-nav">
-        <Link className="brand-mark" href="/" aria-label="Diana Simakhov — Work">
+        <Link
+          className="brand-mark"
+          href="/experiments"
+          aria-label="Diana Simakhov — Experiments"
+        >
           <img className="brand-ring" src="/ds-ring.svg" alt="" />
           <img className="brand-initials" src="/ds-mark.svg" alt="" />
         </Link>
         <nav className="site-links" aria-label="Primary navigation">
-          <Link
-            className="site-link"
-            href="/"
-            data-active={pathname === "/"}
-            aria-current={pathname === "/" ? "page" : undefined}
-          >
-            Work
-          </Link>
           <Link
             className="site-link"
             href="/experiments"

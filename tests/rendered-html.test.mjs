@@ -43,6 +43,8 @@ test("server-renders the experiments index", async () => {
   assert.equal(response.status, 200);
 
   const html = await response.text();
+  assert.doesNotMatch(html, /href="\/"[^>]*>\s*Work\s*<\/a>/);
+  assert.match(html, /aria-label="Diana Simakhov — Experiments"/);
   assert.match(html, /ASK UNK — Focused Card Viewer/);
   assert.match(html, /Interactive player card viewer/);
   assert.match(html, /\/experiments\/yamal\/yamal-front\.webp/);
