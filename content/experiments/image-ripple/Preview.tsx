@@ -1,11 +1,19 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element -- the native image is the fallback and WebGL texture source. */
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useId, useRef, useState, type CSSProperties, type DragEvent } from "react";
 import backgroundImage from "./assets/boats.webp";
 import styles from "./Preview.module.css";
 
 type DetailControl = "ripples" | "speed" | "width";
+
+export type RippleSettings = {
+  rippleCount: number;
+  speed: number;
+  bandWidth: number;
+  loop: boolean;
+  cursorFollow: boolean;
+};
 
 const vertexShaderSource = `
   attribute vec2 a_position;
@@ -29,6 +37,7 @@ const fragmentShaderSource = `
   uniform float u_active;
   uniform float u_transition_time;
   uniform float u_time;
+  uniform vec2 u_origin;
   varying vec2 v_uv;
 
   float gaussian(float value, float center, float width) {
@@ -37,14 +46,21 @@ const fragmentShaderSource = `
   }
 
   void main() {
-    vec2 point = v_uv - 0.5;
+    vec2 point = v_uv - u_origin;
     point.x *= u_aspect;
 
     float radius = length(point);
     vec2 direction = radius > 0.0001 ? point / radius : vec2(0.0);
     vec2 uvDirection = vec2(direction.x / u_aspect, direction.y);
 
-    float edgeRadius = length(vec2(0.5 * u_aspect, 0.5));
+    vec2 toCorner00 = vec2((0.0 - u_origin.x) * u_aspect, 0.0 - u_origin.y);
+    vec2 toCorner10 = vec2((1.0 - u_origin.x) * u_aspect, 0.0 - u_origin.y);
+    vec2 toCorner01 = vec2((0.0 - u_origin.x) * u_aspect, 1.0 - u_origin.y);
+    vec2 toCorner11 = vec2((1.0 - u_origin.x) * u_aspect, 1.0 - u_origin.y);
+    float edgeRadius = max(
+      max(length(toCorner00), length(toCorner10)),
+      max(length(toCorner01), length(toCorner11))
+    );
     float travelRadius = edgeRadius * 1.16;
     float cycle = 3.45;
     float displacement = 0.0;
@@ -77,7 +93,7 @@ const fragmentShaderSource = `
       float bandWidth = u_band_width * mix(
         0.0125,
         0.016,
-        clamp(waveRadius / edgeRadius, 0.0, 1.0)
+        clamp(waveRadius / max(edgeRadius, 0.0001), 0.0, 1.0)
       );
       float profilePosition = distanceToCrest / bandWidth;
       float waveProfile =
@@ -95,7 +111,7 @@ const fragmentShaderSource = `
       float strength = mix(
         0.028,
         0.017,
-        clamp(waveRadius / edgeRadius, 0.0, 1.0)
+        clamp(waveRadius / max(edgeRadius, 0.0001), 0.0, 1.0)
       );
 
       displacement += waveProfile * strength * visibility;
@@ -117,13 +133,39 @@ const fragmentShaderSource = `
   }
 `;
 
-const imageProps = {
-  src: backgroundImage.src,
-  width: 1730,
-  height: 1154,
-  loading: "lazy" as const,
-  decoding: "async" as const,
-};
+
+const defaultImageSrc = backgroundImage.src;
+const textureWidth = 1730;
+const textureHeight = 1154;
+
+function coverCropImage(
+  image: HTMLImageElement,
+  targetWidth: number,
+  targetHeight: number,
+) {
+  const canvas = document.createElement("canvas");
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+  const context = canvas.getContext("2d");
+  if (!context || image.naturalWidth <= 0 || image.naturalHeight <= 0) {
+    return canvas;
+  }
+
+  const scale = Math.max(
+    targetWidth / image.naturalWidth,
+    targetHeight / image.naturalHeight,
+  );
+  const drawWidth = image.naturalWidth * scale;
+  const drawHeight = image.naturalHeight * scale;
+  context.drawImage(
+    image,
+    (targetWidth - drawWidth) / 2,
+    (targetHeight - drawHeight) / 2,
+    drawWidth,
+    drawHeight,
+  );
+  return canvas;
+}
 
 function createShader(
   gl: WebGLRenderingContext,
@@ -144,7 +186,14 @@ function createShader(
   return shader;
 }
 
-export default function Preview({ className }: { className?: string }) {
+export default function Preview({
+  className,
+  onSettingsChange,
+}: {
+  className?: string;
+  onSettingsChange?: (settings: RippleSettings) => void;
+}) {
+  const controlsId = useId();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const controlDockRef = useRef<HTMLDivElement>(null);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
@@ -162,18 +211,58 @@ export default function Preview({ className }: { className?: string }) {
     active: true,
     drainStart: 0,
     mode: 1,
+    originX: 0.5,
+    originY: 0.5,
     rippleCount: 3,
     rippleWidth: 1.35,
     speed: 1,
   });
   const [menuOpen, setMenuOpen] = useState(false);
   const [loopEnabled, setLoopEnabled] = useState(true);
+  const [cursorFollow, setCursorFollow] = useState(false);
   const [playing, setPlaying] = useState(true);
   const [rippleCount, setRippleCount] = useState(3);
   const [rippleWidth, setRippleWidth] = useState(1.35);
   const [speed, setSpeed] = useState(1);
   const [detailControl, setDetailControl] =
     useState<DetailControl | null>(null);
+  const [imageSrc, setImageSrc] = useState(defaultImageSrc);
+  const [dropActive, setDropActive] = useState(false);
+  const objectUrlRef = useRef<string | null>(null);
+  const dragDepthRef = useRef(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadImageRef = useRef<(source: HTMLImageElement) => void>(() => {});
+  const resetToDefaultImageRef = useRef(() => {});
+
+  resetToDefaultImageRef.current = () => {
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+    }
+    setImageSrc(defaultImageSrc);
+    const seed = new window.Image();
+    seed.decoding = "async";
+    seed.onload = () => {
+      uploadImageRef.current(seed);
+    };
+    seed.src = defaultImageSrc;
+  };
+
+  useEffect(() => {
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        resetToDefaultImageRef.current();
+      }
+    };
+    window.addEventListener("pageshow", onPageShow);
+    return () => {
+      window.removeEventListener("pageshow", onPageShow);
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     settingsRef.current = {
@@ -183,6 +272,23 @@ export default function Preview({ className }: { className?: string }) {
       speed,
     };
   }, [rippleCount, rippleWidth, speed]);
+
+  useEffect(() => {
+    onSettingsChange?.({
+      rippleCount,
+      speed,
+      bandWidth: rippleWidth,
+      loop: loopEnabled,
+      cursorFollow,
+    });
+  }, [
+    cursorFollow,
+    loopEnabled,
+    onSettingsChange,
+    rippleCount,
+    rippleWidth,
+    speed,
+  ]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -263,6 +369,7 @@ export default function Preview({ className }: { className?: string }) {
       "u_transition_time",
     );
     const timeLocation = gl.getUniformLocation(program, "u_time");
+    const originLocation = gl.getUniformLocation(program, "u_origin");
     const textureLocation = gl.getUniformLocation(program, "u_texture");
     if (
       positionLocation < 0 ||
@@ -274,6 +381,7 @@ export default function Preview({ className }: { className?: string }) {
       !activeLocation ||
       !transitionTimeLocation ||
       !timeLocation ||
+      !originLocation ||
       !textureLocation
     ) {
       return;
@@ -296,8 +404,23 @@ export default function Preview({ className }: { className?: string }) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
 
+    uploadImageRef.current = (source) => {
+      const covered = coverCropImage(source, textureWidth, textureHeight);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        covered,
+      );
+      textureReady = true;
+    };
+
     let animationFrame = 0;
     let disposed = false;
+    let textureReady = false;
 
     const render = (time: number) => {
       if (disposed) return;
@@ -340,6 +463,13 @@ export default function Preview({ className }: { className?: string }) {
         gl.viewport(0, 0, renderWidth, renderHeight);
       }
 
+      if (!textureReady) {
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        animationFrame = window.requestAnimationFrame(render);
+        return;
+      }
+
       gl.useProgram(program);
       gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
       gl.enableVertexAttribArray(positionLocation);
@@ -367,32 +497,27 @@ export default function Preview({ className }: { className?: string }) {
       gl.uniform1f(activeLocation, settings.active ? 1 : 0);
       gl.uniform1f(transitionTimeLocation, settings.drainStart);
       gl.uniform1f(timeLocation, runtime.elapsed);
+      gl.uniform2f(originLocation, settings.originX, settings.originY);
       gl.uniform1i(textureLocation, 0);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
 
       animationFrame = window.requestAnimationFrame(render);
     };
 
-    const source = new window.Image();
-    source.decoding = "async";
-    source.onload = () => {
+    animationFrame = window.requestAnimationFrame(render);
+
+    const seed = new window.Image();
+    seed.decoding = "async";
+    seed.onload = () => {
       if (disposed) return;
-      gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA,
-        gl.RGBA,
-        gl.UNSIGNED_BYTE,
-        source,
-      );
-      animationFrame = window.requestAnimationFrame(render);
+      uploadImageRef.current(seed);
     };
-    source.src = backgroundImage.src;
+    seed.src = defaultImageSrc;
 
     return () => {
       disposed = true;
-      source.onload = null;
+      seed.onload = null;
+      uploadImageRef.current = () => {};
       window.cancelAnimationFrame(animationFrame);
       gl.deleteTexture(texture);
       gl.deleteBuffer(buffer);
@@ -448,6 +573,34 @@ export default function Preview({ className }: { className?: string }) {
     settingsRef.current.drainStart = runtime.elapsed;
   };
 
+  const setOriginFromPointer = (event: {
+    clientX: number;
+    clientY: number;
+    currentTarget: EventTarget & HTMLElement;
+  }) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+    settingsRef.current.originX = Math.min(
+      1,
+      Math.max(0, (event.clientX - rect.left) / rect.width),
+    );
+    settingsRef.current.originY = Math.min(
+      1,
+      Math.max(0, 1 - (event.clientY - rect.top) / rect.height),
+    );
+  };
+
+  const toggleCursorFollow = () => {
+    setCursorFollow((enabled) => {
+      if (enabled) {
+        settingsRef.current.originX = 0.5;
+        settingsRef.current.originY = 0.5;
+        return false;
+      }
+      return true;
+    });
+  };
+
   const closeControls = () => {
     setMenuOpen(false);
     setDetailControl(null);
@@ -498,6 +651,55 @@ export default function Preview({ className }: { className?: string }) {
     setDetailControl(control);
   };
 
+  const applyImageFile = (file: File) => {
+    if (!file.type.startsWith("image/")) return;
+    const url = URL.createObjectURL(file);
+    const source = new window.Image();
+    source.decoding = "async";
+    source.onload = () => {
+      uploadImageRef.current(source);
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+      }
+      objectUrlRef.current = url;
+      setImageSrc(url);
+      playFromCenter();
+    };
+    source.onerror = () => {
+      URL.revokeObjectURL(url);
+    };
+    source.src = url;
+  };
+
+  const onDragEnter = (event: DragEvent<HTMLDivElement>) => {
+    if (![...event.dataTransfer.types].includes("Files")) return;
+    event.preventDefault();
+    dragDepthRef.current += 1;
+    setDropActive(true);
+  };
+
+  const onDragOver = (event: DragEvent<HTMLDivElement>) => {
+    if (![...event.dataTransfer.types].includes("Files")) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+  };
+
+  const onDragLeave = (event: DragEvent<HTMLDivElement>) => {
+    if (![...event.dataTransfer.types].includes("Files")) return;
+    event.preventDefault();
+    dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
+    if (dragDepthRef.current === 0) setDropActive(false);
+  };
+
+  const onDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    dragDepthRef.current = 0;
+    setDropActive(false);
+    const file = event.dataTransfer.files?.[0];
+    if (file) applyImageFile(file);
+  };
+
   return (
     <div
       className={[styles.ripple, className ?? ""].filter(Boolean).join(" ")}
@@ -505,20 +707,85 @@ export default function Preview({ className }: { className?: string }) {
       <div
         className={styles.visual}
         role="img"
-        aria-label="Miniature sailboats seen through a center-radiating three-dimensional water ripple"
+        aria-label={
+          cursorFollow
+            ? "Miniature sailboats seen through a cursor-following three-dimensional water ripple"
+            : "Miniature sailboats seen through a center-radiating three-dimensional water ripple"
+        }
+        data-cursor-follow={cursorFollow}
+        data-drop-active={dropActive}
+        onPointerMove={(event) => {
+          if (!cursorFollow) return;
+          setOriginFromPointer(event);
+        }}
+        onPointerDown={(event) => {
+          if (cursorFollow) {
+            setOriginFromPointer(event);
+          }
+        }}
+        onClick={(event) => {
+          if (dropActive) return;
+          event.stopPropagation();
+          if (cursorFollow) {
+            setOriginFromPointer(event);
+          }
+          playFromCenter();
+        }}
+        onDragEnter={onDragEnter}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
       >
-        <img {...imageProps} className={styles.base} alt="" />
+        <img
+          alt=""
+          className={styles.base}
+          decoding="async"
+          height={1154}
+          loading="eager"
+          src={defaultImageSrc}
+          width={1730}
+        />
+        {imageSrc !== defaultImageSrc ? (
+          <img
+            alt=""
+            className={styles.base}
+            decoding="async"
+            height={1154}
+            loading="lazy"
+            src={imageSrc}
+            width={1730}
+          />
+        ) : null}
         <canvas className={styles.surface} ref={canvasRef} aria-hidden="true" />
+        <div className={styles.dropOverlay} aria-hidden={!dropActive}>
+          Drop to try your image
+        </div>
       </div>
+
+      <input
+        accept="image/*"
+        className={styles.fileInput}
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) applyImageFile(file);
+          event.target.value = "";
+        }}
+        ref={fileInputRef}
+        type="file"
+      />
 
       <div
         className={styles.controlDock}
         data-detail={detailControl ?? "none"}
         data-open={menuOpen}
         ref={controlDockRef}
+        onClick={(event) => event.stopPropagation()}
+        onPointerDown={(event) => event.stopPropagation()}
         onKeyDown={(event) => {
           if (event.key !== "Escape") return;
           if (detailControl) {
+            event.preventDefault();
+            event.stopPropagation();
             const previous = detailControl;
             setDetailControl(null);
             window.requestAnimationFrame(() =>
@@ -526,12 +793,16 @@ export default function Preview({ className }: { className?: string }) {
             );
             return;
           }
-          closeControls();
+          if (menuOpen) {
+            event.preventDefault();
+            event.stopPropagation();
+            closeControls();
+          }
         }}
       >
         <div
           className={styles.controlPanel}
-          id="ripple-controls"
+          id={controlsId}
           role="group"
           aria-label="Ripple controls"
         >
@@ -585,6 +856,49 @@ export default function Preview({ className }: { className?: string }) {
                   strokeLinejoin="round"
                 >
                   <path d="M8.165 8.174a4 4 0 0 0-5.166 3.826a4 4 0 0 0 6.829 2.828a10 10 0 0 0 2.172-2.828m1.677-2.347a10 10 0 0 1 .495-.481a4 4 0 1 1 5.129 6.1m-3.521.537a4 4 0 0 1-1.608-.981a10 10 0 0 1-2.172-2.828" />
+                  <path d="M3 3l18 18" />
+                </svg>
+              </span>
+            </button>
+            <button
+              className={styles.controlAction}
+              data-active={cursorFollow}
+              onClick={toggleCursorFollow}
+              tabIndex={menuOpen ? 0 : -1}
+              type="button"
+              aria-label={
+                cursorFollow
+                  ? "Radiate ripples from center"
+                  : "Radiate ripples from cursor"
+              }
+              aria-pressed={cursorFollow}
+            >
+              <span
+                className={styles.cursorIcon}
+                data-on={cursorFollow}
+                aria-hidden="true"
+              >
+                <svg
+                  className={styles.cursorOn}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M7.904 17.563a1.2 1.2 0 0 0 2.228.308l2.09-3.093l4.907 4.907a1.067 1.067 0 0 0 1.509 0l1.047-1.047a1.067 1.067 0 0 0 0-1.509l-4.907-4.907l3.113-2.09a1.2 1.2 0 0 0-.309-2.228l-13.582-3.904l3.904 13.563" />
+                </svg>
+                <svg
+                  className={styles.cursorOff}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M15.662 11.628l2.229-1.496a1.2 1.2 0 0 0-.309-2.228l-8.013-2.303m-5.569-1.601l3.904 13.563a1.2 1.2 0 0 0 2.228.308l2.09-3.093l4.907 4.907a1.067 1.067 0 0 0 1.509 0l.524-.524" />
                   <path d="M3 3l18 18" />
                 </svg>
               </span>
@@ -644,6 +958,16 @@ export default function Preview({ className }: { className?: string }) {
                 </div>
               );
             })}
+            <div className={styles.imageActions}>
+              <button
+                className={styles.dropHint}
+                onClick={() => fileInputRef.current?.click()}
+                tabIndex={menuOpen ? 0 : -1}
+                type="button"
+              >
+                Drop or select image
+              </button>
+            </div>
           </div>
         </div>
 
@@ -655,7 +979,7 @@ export default function Preview({ className }: { className?: string }) {
             else setMenuOpen(true);
           }}
           type="button"
-          aria-controls="ripple-controls"
+          aria-controls={controlsId}
           aria-expanded={menuOpen}
           aria-label={menuOpen ? "Close ripple controls" : "Open ripple controls"}
         >
@@ -680,7 +1004,10 @@ export default function Preview({ className }: { className?: string }) {
         </button>
       </div>
       <span className={styles.srOnly} aria-live="polite">
-        {loopEnabled ? "Ripple loop on" : "Ripple loop off"}
+        {loopEnabled ? "Ripple loop on" : "Ripple loop off"}.{" "}
+        {cursorFollow
+          ? "Ripples follow the cursor"
+          : "Ripples radiate from the center"}
       </span>
     </div>
   );

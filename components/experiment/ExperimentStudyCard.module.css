@@ -1,0 +1,105 @@
+.card {
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: cubic-bezier(0.45, 0, 0.55, 1);
+  position: relative;
+  margin-right: -14px;
+  margin-left: -14px;
+  padding: 14px;
+  border: 1px solid transparent;
+  border-radius: 28px;
+  background: transparent;
+  box-shadow: none;
+  transition:
+    background 220ms var(--ease-out),
+    border-color 220ms var(--ease-out),
+    box-shadow 220ms var(--ease-out),
+    transform 220ms var(--ease-out);
+}
+
+.card:hover,
+.card[data-opening="true"] {
+  border-color: rgba(40, 50, 55, 0.08);
+  background:
+    linear-gradient(
+      165deg,
+      rgba(255, 255, 255, 0.92),
+      rgba(248, 248, 245, 0.88)
+    );
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 14px 36px rgba(10, 20, 23, 0.08),
+    0 2px 8px rgba(10, 20, 23, 0.04);
+}
+
+.card[data-opening="true"] {
+  transform: scale(0.985);
+}
+
+.surface {
+  min-width: 0;
+}
+
+.previewHit {
+  min-width: 0;
+}
+
+.meta {
+  cursor: pointer;
+}
+
+.openHint {
+  appearance: none;
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.openHint span {
+  font-size: 10px;
+  transition: transform 200ms var(--ease-out);
+}
+
+.openHint:focus-visible {
+  outline: 2px solid rgba(42, 182, 143, 0.55);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.card:hover .openHint,
+.meta:hover .openHint {
+  color: var(--ink);
+}
+
+.card:hover .openHint span,
+.meta:hover .openHint span {
+  transform: translateX(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .openHint span {
+    transition: none;
+  }
+
+  .card[data-opening="true"] {
+    transform: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .card {
+    margin-right: -10px;
+    margin-left: -10px;
+    padding: 10px;
+    border-radius: 22px;
+  }
+}

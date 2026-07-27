@@ -1,19 +1,19 @@
 {
   "title": "Image Ripple",
   "date": "2026-07-27",
-  "summary": "Three continuous wavefronts bend light from the image center to its edges, using radial displacement and soft crest-and-trough shading.",
+  "summary": "I wanted to experiment with a ripple animation sitting on top of an image, and make it scalable enough that you can swap in any photo and see what happens.",
   "hasDetail": false,
-  "tags": ["Motion", "CSS", "Image treatment"],
+  "tags": ["Motion", "WebGL", "Image treatment"],
   "blocks": [
     {
       "id": "overview",
       "type": "text",
-      "content": "This study turns one photograph into a center-out water ripple while keeping the original image perfectly still and undistorted beneath the effect.\n\nThree phase-offset wavefronts travel continuously beyond the frame. A lightweight GPU shader bends pixels in opposite directions around each crest, then adds a soft highlight and trough shadow so the edge reads as curved water rather than a circular crop."
+      "content": "I wanted to experiment with a ripple animation sitting on top of an image, and make it scalable enough that you can swap in any photo and see what happens.\n\nIn this one you can play with speed, how many ripples go out, and how wide they are, so you get real control over the feel instead of a fixed treatment."
     },
     {
       "id": "accessibility",
       "type": "callout",
-      "content": "When reduced motion is enabled, the animation pauses on a composed still frame while preserving the layered refraction."
+      "content": "When reduced motion is on, the canvas is skipped and the still photograph stays."
     }
   ]
 }

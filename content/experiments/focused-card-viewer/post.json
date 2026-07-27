@@ -1,19 +1,19 @@
 {
   "title": "Focused Card Viewer",
   "date": "2026-07-24",
-  "summary": "Choose Yamal, Haaland, or Messi, then drag the card through the square canvas to reveal its back or change its orientation.",
+  "summary": "I pulled one card out of the product and put it on a quiet canvas so I could drag, flip, and turn it without everything else in the way.",
   "hasDetail": false,
   "tags": ["Interaction design", "Collectibles", "Component"],
   "blocks": [
     {
       "id": "overview",
       "type": "text",
-      "content": "This experiment pulls the card presentation out of the ASK UNK detail screen and removes the surrounding product interface.\n\nChoose between Yamal, Haaland, and Messi from the thumbnail rail, then explore the selected card on one dark canvas."
+      "content": "I pulled one card out of the ASK UNK detail screen and put it on a quiet canvas. No product chrome around it — just the card, so you can drag, flip, and turn it.\n\nPick Yamal, Haaland, or Messi from the thumbnails. Drag anywhere to orbit. The bottom-right control flips portrait and landscape. Same damping, idle motion, and studio shine as the product, just isolated."
     },
     {
       "id": "interaction",
       "type": "callout",
-      "content": "Drag in any direction to rotate the physical card. Use the bottom-right rotate control to switch between portrait and landscape. Orbit damping, idle motion, card depth, and a moving studio shine reproduce the ASK UNK interaction."
+      "content": "Drag in any direction to rotate the physical card. Use the bottom-right rotate control to switch between portrait and landscape."
     }
   ]
 }
