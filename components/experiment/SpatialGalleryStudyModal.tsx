@@ -34,7 +34,7 @@ export function SpatialGalleryStudyModal({
         onCopyPrompt={() => {
           void copyPrompt(buildSpatialGalleryLlmPrompt());
         }}
-        preview={<Preview />}
+        preview={<Preview className="ask-unk-gallery-study" />}
         promptCopied={promptCopied}
         snippets={[
           {

@@ -5,7 +5,17 @@ const CARD_DISPLAY_SCALE = 1.05;
 const FLOAT_MARGIN = 1.1;
 const ORBIT_MARGIN = 1.08;
 
-export const CARD_VIEWER_DEFAULT_INSETS = { padX: 24, padY: 60 } as const;
+/**
+ * Symmetric edge padding for fit. The right-hand control rail overlays empty
+ * margin — framing stays on the true canvas center.
+ */
+export const CARD_VIEWER_DEFAULT_INSETS = { padX: 18, padY: 28 } as const;
+
+/**
+ * Study modal only: slight right nudge so the card reads centered against the
+ * player/rotate rail. Landing/list previews must keep this at 0.
+ */
+export const CARD_VIEWER_STUDY_CONTROL_RAIL_OFFSET_PX = 18;
 
 export type CardViewerFitInsets = {
   padX: number;

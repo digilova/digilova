@@ -10,6 +10,7 @@ import {
 import { CARD_PORTRAIT_ASPECT } from "./cardImageAspect";
 import { BareCard3DViewer } from "./BareCard3DViewer";
 import type { CardOrientation } from "./card3d";
+import type { CardViewerFitInsets } from "./card3d/cardViewerFit";
 import rotateIcon from "./assets/rotate-frame-start.svg";
 import defaultBack from "./assets/yamal-back.webp";
 import defaultFront from "./assets/yamal-front.webp";
@@ -39,6 +40,8 @@ export type Card3DStageProps = {
   ariaLabel?: string;
   className?: string;
   style?: CSSProperties;
+  fitInsets?: CardViewerFitInsets;
+  opticalCenterOffsetPx?: number;
 };
 
 function toCssSize(value: number | string) {
@@ -60,6 +63,8 @@ export function Card3DStage({
   ariaLabel = "Interactive 3D collectible card. Drag in any direction to turn the card and reveal its back.",
   className,
   style,
+  fitInsets,
+  opticalCenterOffsetPx,
 }: Card3DStageProps) {
   const cardOptions: readonly Card3DOption[] =
     cards && cards.length > 0
@@ -181,6 +186,8 @@ export function Card3DStage({
           backImageUrl={selectedCard.backSrc}
           orientation={orientation}
           aspectRatio={cardAspect}
+          fitInsets={fitInsets}
+          opticalCenterOffsetPx={opticalCenterOffsetPx}
         />
         {cardOptions.length > 1 ? (
           <div

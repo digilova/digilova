@@ -18,6 +18,11 @@ type CardViewerCameraFitProps = {
   vFovDeg?: number;
 };
 
+/**
+ * Fit the card to the canvas with symmetric padding. Horizontal study balancing
+ * for the right-hand controls is handled in the DOM (see BareCard3DViewer), so
+ * the landing-page preview stays on the true geometric center.
+ */
 export function CardViewerCameraFit({
   aspectRatio,
   orientation,
@@ -41,14 +46,19 @@ export function CardViewerCameraFit({
       fitInsets,
     );
 
+    perspectiveCamera.clearViewOffset();
     perspectiveCamera.position.set(0, 0.05, distance);
+    perspectiveCamera.up.set(0, 1, 0);
+    perspectiveCamera.lookAt(0, 0, 0);
     perspectiveCamera.updateProjectionMatrix();
 
     const controls = controlsRef.current;
     if (controls) {
       controls.target.set(0, 0, 0);
-      controls.minDistance = distance * 0.92;
-      controls.maxDistance = distance * 1.4;
+      controls.minDistance = distance * 0.88;
+      controls.maxDistance = distance * 1.06;
+      controls.setAzimuthalAngle(0);
+      controls.setPolarAngle((Math.PI * 0.22 + Math.PI * 0.78) / 2);
       controls.update();
     }
   }, [

@@ -11,6 +11,17 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Study modal: match ripple landscape frame. */
+.stage:global(.focused-card-study) {
+  aspect-ratio: 1730 / 1154;
+}
+
+@media (max-width: 560px) {
+  .stage:global(.focused-card-study) {
+    border-radius: 16px;
+  }
+}
+
 .stage:active {
   cursor: grabbing;
 }

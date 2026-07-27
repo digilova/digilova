@@ -358,18 +358,31 @@ export function SpatialCardGallery({
   );
 
   const getExploreRect = useCallback(
-    (index: number, targetPan: Point): Rect => {
+    (
+      index: number,
+      targetPan: Point,
+      tileX?: number,
+      tileY?: number,
+    ): Rect => {
       const placement = explorePlacement(index);
-      const screenX = wrapCoordinate(
-        placement.x + targetPan.x,
-        exploreSize.width,
-        viewportSize.width / 2,
-      );
-      const screenY = wrapCoordinate(
-        placement.y + targetPan.y,
-        exploreSize.height,
-        viewportSize.height / 2,
-      );
+      const rawX = placement.x + targetPan.x;
+      const rawY = placement.y + targetPan.y;
+      const screenX =
+        tileX === undefined
+          ? wrapCoordinate(
+              rawX,
+              exploreSize.width,
+              viewportSize.width / 2,
+            )
+          : rawX + tileX * exploreSize.width;
+      const screenY =
+        tileY === undefined
+          ? wrapCoordinate(
+              rawY,
+              exploreSize.height,
+              viewportSize.height / 2,
+            )
+          : rawY + tileY * exploreSize.height;
       const visual = focusVisual(
         screenX,
         screenY,
@@ -397,6 +410,28 @@ export function SpatialCardGallery({
       exploreSize.height,
       exploreSize.width,
       measuredAspects,
+      viewportSize.height,
+      viewportSize.width,
+    ],
+  );
+
+  const getExploreTileRange = useCallback(
+    (targetPan: Point) => {
+      const pad = Math.max(EXPLORE_CARD_WIDTH, EXPLORE_CARD_HEIGHT) * 1.6;
+      const boardW = Math.max(exploreSize.width, 1);
+      const boardH = Math.max(exploreSize.height, 1);
+
+      return {
+        minTx: Math.floor((-pad - targetPan.x) / boardW) - 1,
+        maxTx: Math.floor((viewportSize.width + pad - targetPan.x) / boardW) + 1,
+        minTy: Math.floor((-pad - targetPan.y) / boardH) - 1,
+        maxTy:
+          Math.floor((viewportSize.height + pad - targetPan.y) / boardH) + 1,
+      };
+    },
+    [
+      exploreSize.height,
+      exploreSize.width,
       viewportSize.height,
       viewportSize.width,
     ],
@@ -437,21 +472,29 @@ export function SpatialCardGallery({
       if (cards.length === 0) return 0;
       let bestIndex = 0;
       let bestDistance = Number.POSITIVE_INFINITY;
+      const range = getExploreTileRange(targetPan);
 
-      cards.forEach((_, index) => {
-        const rect = getExploreRect(index, targetPan);
-        const centerX = rect.x + rect.width / 2;
-        const centerY = rect.y + rect.height / 2;
-        const nextDistance = Math.hypot(point.x - centerX, point.y - centerY);
-        if (nextDistance < bestDistance) {
-          bestDistance = nextDistance;
-          bestIndex = index;
+      for (let tileY = range.minTy; tileY <= range.maxTy; tileY += 1) {
+        for (let tileX = range.minTx; tileX <= range.maxTx; tileX += 1) {
+          cards.forEach((_, index) => {
+            const rect = getExploreRect(index, targetPan, tileX, tileY);
+            const centerX = rect.x + rect.width / 2;
+            const centerY = rect.y + rect.height / 2;
+            const nextDistance = Math.hypot(
+              point.x - centerX,
+              point.y - centerY,
+            );
+            if (nextDistance < bestDistance) {
+              bestDistance = nextDistance;
+              bestIndex = index;
+            }
+          });
         }
-      });
+      }
 
       return bestIndex;
     },
-    [cards, getExploreRect],
+    [cards, getExploreRect, getExploreTileRange],
   );
 
   const centeredPanForIndex = useCallback(
@@ -1043,6 +1086,10 @@ export function SpatialCardGallery({
     ) - 1;
   const visibleGridColumns =
     Math.ceil(viewportSize.width / Math.max(gridStep, 1)) + 3;
+  const exploreTileRange =
+    !transition && mode === "explore"
+      ? getExploreTileRange(pan)
+      : null;
   const renderedCards =
     cards.length === 0
       ? []
@@ -1055,14 +1102,54 @@ export function SpatialCardGallery({
               const row = offset % effectiveRows;
               const slot = column * effectiveRows + row;
               const index = positiveModulo(slot, cards.length);
-              return { card: cards[index], index, slot };
+              return {
+                card: cards[index],
+                index,
+                slot,
+                tileX: undefined as number | undefined,
+                tileY: undefined as number | undefined,
+              };
             },
           )
-        : cards.map((card, index) => ({
-            card,
-            index,
-            slot: undefined,
-          }));
+        : exploreTileRange
+          ? (() => {
+              const tiles: {
+                card: (typeof cards)[number];
+                index: number;
+                slot: undefined;
+                tileX: number;
+                tileY: number;
+              }[] = [];
+              for (
+                let tileY = exploreTileRange.minTy;
+                tileY <= exploreTileRange.maxTy;
+                tileY += 1
+              ) {
+                for (
+                  let tileX = exploreTileRange.minTx;
+                  tileX <= exploreTileRange.maxTx;
+                  tileX += 1
+                ) {
+                  cards.forEach((card, index) => {
+                    tiles.push({
+                      card,
+                      index,
+                      slot: undefined,
+                      tileX,
+                      tileY,
+                    });
+                  });
+                }
+              }
+              return tiles;
+            })()
+          : cards.map((card, index) => ({
+              card,
+              index,
+              slot: undefined,
+              tileX: undefined as number | undefined,
+              tileY: undefined as number | undefined,
+            }));
 
   return (
     <div
@@ -1104,7 +1191,7 @@ export function SpatialCardGallery({
         data-spatial-gallery-explore={visibleMode === "explore" ? "" : undefined}
         aria-hidden={transition ? true : undefined}
       >
-        {renderedCards.map(({ card, index, slot }) => {
+        {renderedCards.map(({ card, index, slot, tileX, tileY }) => {
           const gridRect = getGridRect(
             index,
             transition?.gridScroll ?? gridScroll,
@@ -1114,6 +1201,8 @@ export function SpatialCardGallery({
           const exploreRect = getExploreRect(
             index,
             transition?.explorePan ?? pan,
+            tileX,
+            tileY,
           );
           const rect = transition
             ? {
@@ -1138,14 +1227,33 @@ export function SpatialCardGallery({
             : mode === "grid"
               ? gridRect
               : exploreRect;
+
+          if (
+            !transition &&
+            mode === "explore" &&
+            (rect.x + rect.width < -40 ||
+              rect.y + rect.height < -40 ||
+              rect.x > viewportSize.width + 40 ||
+              rect.y > viewportSize.height + 40)
+          ) {
+            return null;
+          }
+
           const column = Math.floor(index / effectiveRows);
           const row = index % effectiveRows;
           const delay = Math.min(column + row, 12) * 32;
+          const cardKey =
+            slot !== undefined
+              ? `${card.id}-slot-${slot}`
+              : tileX !== undefined && tileY !== undefined
+                ? `${card.id}-tile-${tileX}-${tileY}`
+                : card.id;
+          const stackOrder = Math.round(rect.width * 10 + rect.opacity * 100);
 
           return (
             <div
               className={cardClassName}
-              key={slot === undefined ? card.id : `${card.id}-slot-${slot}`}
+              key={cardKey}
               data-spatial-gallery-card
               data-card-index={index}
               style={
@@ -1155,6 +1263,7 @@ export function SpatialCardGallery({
                   width: rect.width,
                   height: rect.height,
                   opacity: rect.opacity,
+                  zIndex: stackOrder,
                   "--spatial-gallery-delay": `${delay}ms`,
                 } as CSSProperties
               }
