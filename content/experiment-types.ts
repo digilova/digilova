@@ -59,6 +59,6 @@ export type ExperimentRecord = {
   slug: string;
   post: ExperimentPost;
   detail?: ExperimentDetail;
-  Preview?: ComponentType;
+  Preview?: ComponentType<{ className?: string }>;
   previewSource?: string;
 };

@@ -1150,9 +1150,6 @@ export function SpatialCardGallery({
                   width: rect.width,
                   height: rect.height,
                   opacity: rect.opacity,
-                  borderRadius: transition
-                    ? lerp(8, 16, transition.progress)
-                    : undefined,
                   "--spatial-gallery-delay": `${delay}ms`,
                 } as CSSProperties
               }

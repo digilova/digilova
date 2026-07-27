@@ -129,40 +129,33 @@ export function BareCard3DViewer({
         inset: 0,
         cursor: "grab",
         touchAction: "none",
+        opacity: revealed ? 1 : 0,
+        transition: `opacity ${fadeDurationMs}ms ${fadeEasing} ${fadeDelayMs}ms`,
       }}
       onPointerMove={onPointerMove}
       onPointerLeave={onPointerLeave}
     >
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          opacity: revealed ? 1 : 0,
-          transition: `opacity ${fadeDurationMs}ms ${fadeEasing} ${fadeDelayMs}ms`,
-        }}
+      <Canvas
+        dpr={[1, 2]}
+        frameloop="always"
+        resize={{ scroll: false, debounce: { scroll: 0, resize: 0 } }}
+        camera={{ position: [0, 0.05, 7.1], fov: 34 }}
+        gl={{ antialias: true, alpha: true }}
+        shadows
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }}
       >
-        <Canvas
-          dpr={[1, 2]}
-          frameloop="always"
-          resize={{ scroll: false, debounce: { scroll: 0, resize: 0 } }}
-          camera={{ position: [0, 0.05, 7.1], fov: 34 }}
-          gl={{ antialias: true, alpha: true }}
-          shadows
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }}
-        >
-          <Suspense fallback={null}>
-            <EmbeddedBareCardScene
-              frontImageUrl={frontImageUrl}
-              backImageUrl={backImageUrl}
-              orientation={orientation}
-              aspectRatio={aspectRatio}
-              fitInsets={fitInsets}
-              pointerRef={pointerRef}
-              onSceneReady={onSceneReady}
-            />
-          </Suspense>
-        </Canvas>
-      </div>
+        <Suspense fallback={null}>
+          <EmbeddedBareCardScene
+            frontImageUrl={frontImageUrl}
+            backImageUrl={backImageUrl}
+            orientation={orientation}
+            aspectRatio={aspectRatio}
+            fitInsets={fitInsets}
+            pointerRef={pointerRef}
+            onSceneReady={onSceneReady}
+          />
+        </Suspense>
+      </Canvas>
     </div>
   );
 }

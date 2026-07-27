@@ -92,13 +92,10 @@
 }
 
 .gridCard,
-.gridCard img {
-  border-radius: 8px;
-}
-
+.gridCard img,
 .exploreCard,
 .exploreCard img {
-  border-radius: 16px;
+  border-radius: 8px;
 }
 
 .morphLayer {

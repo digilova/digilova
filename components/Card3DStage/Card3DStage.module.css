@@ -15,6 +15,21 @@
   cursor: grabbing;
 }
 
+.stage::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(
+    ellipse 58% 58% at 50% 46%,
+    rgb(255 255 255 / 8%) 0%,
+    rgb(255 255 255 / 3%) 32%,
+    transparent 68%
+  );
+  content: "";
+  pointer-events: none;
+}
+
 .stage::after {
   position: absolute;
   inset: 0;
@@ -53,31 +68,100 @@
 .rotateButton:hover {
   opacity: 1;
   background: rgb(255 255 255 / 18%);
-  transform: scale(1.1);
+  transform: scale(1.06);
 }
 
 .rotateButton:active {
-  transform: scale(0.94);
+  transform: scale(0.97);
 }
 
 .rotateButton:focus-visible {
-  outline: 2px solid white;
-  outline-offset: 3px;
+  border-color: rgb(255 255 255 / 55%);
+  outline: none;
+  background: rgb(255 255 255 / 18%);
+  opacity: 1;
 }
 
 .rotateIcon {
   position: relative;
-  display: block;
+  display: grid;
   width: 34px;
   height: 34px;
+  place-items: center;
+  transform: translate(-0.5px, -1px);
   pointer-events: none;
 }
 
-.rotateIcon svg {
+.rotateIcon img {
   display: block;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
+  width: 20px;
+  height: 20px;
+  filter: invert(1);
+  opacity: 1;
+  transform: scaleX(1);
+  transform-origin: 50% 50%;
+}
+
+.rotateIcon[data-orientation="landscape"] img {
+  transform: scaleX(-1);
+}
+
+.rotateIcon[data-direction="forward"] img {
+  animation: rotate-icon-forward 280ms both;
+  will-change: opacity, transform;
+}
+
+.rotateIcon[data-direction="backward"] img {
+  animation: rotate-icon-backward 280ms both;
+  will-change: opacity, transform;
+}
+
+@keyframes rotate-icon-forward {
+  0% {
+    opacity: 1;
+    transform: scaleX(1) rotate(0deg) scale(1);
+    animation-timing-function: ease-in;
+  }
+
+  38% {
+    opacity: 0;
+    transform: scaleX(1) rotate(24deg) scale(0.78);
+  }
+
+  39% {
+    opacity: 0;
+    transform: scaleX(-1) rotate(0deg) scale(0.78);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scaleX(-1) rotate(0deg) scale(1);
+  }
+}
+
+@keyframes rotate-icon-backward {
+  0% {
+    opacity: 1;
+    transform: scaleX(-1) rotate(0deg) scale(1);
+    animation-timing-function: ease-in;
+  }
+
+  38% {
+    opacity: 0;
+    transform: scaleX(-1) rotate(-24deg) scale(0.78);
+  }
+
+  39% {
+    opacity: 0;
+    transform: scaleX(1) rotate(0deg) scale(0.78);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scaleX(1) rotate(0deg) scale(1);
+  }
 }
 
 .playerPicker {
@@ -117,11 +201,11 @@
 }
 
 .playerButton:hover {
-  transform: scale(calc(var(--thumbnail-proximity-scale, 1) * 1.1));
+  transform: scale(calc(var(--thumbnail-proximity-scale, 1) * 1.06));
 }
 
 .playerButton:active {
-  transform: scale(calc(var(--thumbnail-proximity-scale, 1) * 0.95));
+  transform: scale(calc(var(--thumbnail-proximity-scale, 1) * 0.97));
 }
 
 .playerButton:focus-visible {
@@ -163,6 +247,14 @@
 @media (prefers-reduced-motion: reduce) {
   .rotateButton {
     transition: none;
+  }
+
+  .rotateIcon img {
+    will-change: auto;
+  }
+
+  .rotateIcon[data-direction] img {
+    animation: none;
   }
 
   .playerButton {

@@ -2,7 +2,6 @@
 
 import {
   useEffect,
-  useId,
   useRef,
   useState,
   type CSSProperties,
@@ -11,19 +10,12 @@ import {
 import { CARD_PORTRAIT_ASPECT } from "./cardImageAspect";
 import { BareCard3DViewer } from "./BareCard3DViewer";
 import type { CardOrientation } from "./card3d";
+import rotateIcon from "./assets/rotate-frame-start.svg";
 import defaultBack from "./assets/yamal-back.webp";
 import defaultFront from "./assets/yamal-front.webp";
 import styles from "./Card3DStage.module.css";
 
-const ROTATE_ICON_DURATION_MS = 200;
-const ROTATE_ICON_PATHS = {
-  start:
-    "M10 21.93 C7.65 17.86 9.04 12.66 12.93 11 C17 8.65 22.2 10.04 24.29 13.68",
-  middle:
-    "M10 21.93 C12.33 20.62 14.67 19.31 17 18 C19.33 16.64 21.67 15.29 24 13.93",
-  end:
-    "M9 20 C11.35 24.07 16.55 25.46 20.18 23.36 C24.24 21.01 25.64 15.81 23.29 11.75",
-} as const;
+const ROTATE_ICON_DURATION_MS = 280;
 
 type RotationDirection = "forward" | "backward";
 
@@ -51,6 +43,10 @@ export type Card3DStageProps = {
 
 function toCssSize(value: number | string) {
   return typeof value === "number" ? `${value}px` : value;
+}
+
+function toAssetUrl(asset: string | { src: string }) {
+  return typeof asset === "string" ? asset : asset.src;
 }
 
 export function Card3DStage({
@@ -83,10 +79,8 @@ export function Card3DStage({
     useState<CardOrientation>("portrait");
   const [rotationDirection, setRotationDirection] =
     useState<RotationDirection | null>(null);
-  const [reduceMotion, setReduceMotion] = useState(false);
   const playerPickerRef = useRef<HTMLDivElement>(null);
   const rotationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const rotateMarkerId = `rotate-arrow-${useId().replaceAll(":", "")}`;
   const selectedCard =
     cardOptions.find((card) => card.id === selectedCardId) ?? cardOptions[0];
   const cardAspect =
@@ -151,23 +145,6 @@ export function Card3DStage({
     },
     [],
   );
-  useEffect(() => {
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const updatePreference = () => setReduceMotion(media.matches);
-
-    updatePreference();
-    media.addEventListener("change", updatePreference);
-    return () => media.removeEventListener("change", updatePreference);
-  }, []);
-
-  const rotatePath =
-    orientation === "portrait"
-      ? ROTATE_ICON_PATHS.start
-      : ROTATE_ICON_PATHS.end;
-  const rotatePathValues =
-    rotationDirection === "backward"
-      ? `${ROTATE_ICON_PATHS.end};${ROTATE_ICON_PATHS.middle};${ROTATE_ICON_PATHS.start}`
-      : `${ROTATE_ICON_PATHS.start};${ROTATE_ICON_PATHS.middle};${ROTATE_ICON_PATHS.end}`;
 
   return (
     <>
@@ -263,43 +240,7 @@ export function Card3DStage({
             data-orientation={orientation}
             aria-hidden="true"
           >
-            <svg viewBox="0 0 34 34" focusable="false">
-              <defs>
-                <marker
-                  id={rotateMarkerId}
-                  viewBox="0 0 5 5"
-                  markerWidth="5"
-                  markerHeight="5"
-                  refX="4.5"
-                  refY="2.5"
-                  orient="auto"
-                  markerUnits="userSpaceOnUse"
-                >
-                  <path d="M0 0.25 4.75 2.5 0 4.75Z" fill="currentColor" />
-                </marker>
-              </defs>
-              <path
-                d={rotatePath}
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeWidth="1.5"
-                markerEnd={`url(#${rotateMarkerId})`}
-              >
-                {rotationDirection && !reduceMotion ? (
-                  <animate
-                    key={`${rotationDirection}-${orientation}`}
-                    attributeName="d"
-                    dur={`${ROTATE_ICON_DURATION_MS}ms`}
-                    values={rotatePathValues}
-                    keyTimes="0;0.5;1"
-                    calcMode="spline"
-                    keySplines=".25 .1 .25 1;.25 .1 .25 1"
-                    fill="freeze"
-                  />
-                ) : null}
-              </path>
-            </svg>
+            <img src={toAssetUrl(rotateIcon)} alt="" draggable={false} />
           </span>
         </button>
         <span className={styles.instructions}>Drag to rotate the card</span>
