@@ -29,7 +29,7 @@ body {
   margin: 0;
   background: var(--surface);
   color: var(--ink);
-  font-family: var(--font-barlow), "Helvetica Neue", Arial, sans-serif;
+  font-family: "Barlow", "Helvetica Neue", Arial, sans-serif;
   font-size: 13px;
   font-weight: 400;
   letter-spacing: 0.005em;
@@ -670,7 +670,7 @@ select {
 }
 
 .article-body code {
-  font-family: var(--font-mono), monospace;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 0.9em;
 }
 
@@ -706,7 +706,7 @@ select {
   padding: 8px 10px 8px 14px;
   border-bottom: 1px solid var(--line);
   color: var(--muted);
-  font-family: var(--font-mono), monospace;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 10px;
 }
 
