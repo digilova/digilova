@@ -18,9 +18,13 @@ const cards: SpatialGalleryCard[] = Array.from({ length: 32 }, (_, index) => {
   };
 });
 
-export default function Preview() {
+export default function Preview({ className }: { className?: string }) {
   return (
-    <div className="ask-unk-gallery-preview">
+    <div
+      className={["ask-unk-gallery-preview", className ?? ""]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <SpatialCardGallery
         cards={cards}
         rows={5}

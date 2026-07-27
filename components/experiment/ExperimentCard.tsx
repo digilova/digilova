@@ -16,7 +16,9 @@ export function ExperimentCard({
     : undefined;
   const mode = cover ? "image" : Preview ? "preview" : "placeholder";
 
-  const visual = (
+  const visual = Preview ? (
+    <Preview className="experiment-preview" />
+  ) : (
     <div
       className="work-visual experiment-visual"
       data-mode={mode}
@@ -36,8 +38,6 @@ export function ExperimentCard({
     >
       {cover ? (
         <img className="experiment-cover" src={cover} alt="" />
-      ) : Preview ? (
-        <Preview />
       ) : (
         <>
           <span className="work-visual-label">{post.title}</span>

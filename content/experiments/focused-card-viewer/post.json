@@ -1,7 +1,7 @@
 {
   "title": "Focused Card Viewer",
   "date": "2026-07-24",
-  "summary": "Choose Yamal, Haaland, or Messi, then drag the card through the 498×498 canvas to reveal its back or change its orientation.",
+  "summary": "Choose Yamal, Haaland, or Messi, then drag the card through the square canvas to reveal its back or change its orientation.",
   "hasDetail": false,
   "tags": ["Interaction design", "Collectibles", "Component"],
   "blocks": [

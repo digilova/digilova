@@ -2,7 +2,7 @@
 
 import { Card3DStage } from "@/components/Card3DStage";
 
-export default function Preview() {
+export default function Preview({ className }: { className?: string }) {
   return (
     <Card3DStage
       cards={[
@@ -35,7 +35,8 @@ export default function Preview() {
         },
       ]}
       initialCardId="yamal"
-      size={498}
+      className={className}
+      size="100%"
       ariaLabel="Interactive player card viewer. Choose a player, then drag in any direction to turn the 3D card and reveal its back."
     />
   );

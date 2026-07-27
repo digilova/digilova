@@ -15,7 +15,7 @@ import defaultBack from "./assets/yamal-back.webp";
 import defaultFront from "./assets/yamal-front.webp";
 import styles from "./Card3DStage.module.css";
 
-const ROTATE_ICON_DURATION_MS = 360;
+const ROTATE_ICON_DURATION_MS = 280;
 
 type RotationDirection = "forward" | "backward";
 

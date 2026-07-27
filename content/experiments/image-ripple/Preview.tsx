@@ -1,9 +1,11 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element -- the native image is the fallback and WebGL texture source. */
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import backgroundImage from "./assets/boats.webp";
 import styles from "./Preview.module.css";
+
+type DetailControl = "ripples" | "speed" | "width";
 
 const vertexShaderSource = `
   attribute vec2 a_position;
@@ -21,6 +23,11 @@ const fragmentShaderSource = `
 
   uniform sampler2D u_texture;
   uniform float u_aspect;
+  uniform float u_band_width;
+  uniform float u_mode;
+  uniform float u_ripple_count;
+  uniform float u_active;
+  uniform float u_transition_time;
   uniform float u_time;
   varying vec2 v_uv;
 
@@ -43,15 +50,31 @@ const fragmentShaderSource = `
     float displacement = 0.0;
     float lighting = 0.0;
 
-    for (int wave = 0; wave < 3; wave++) {
-      float phaseOffset = float(wave) * travelRadius / 3.0;
-      float waveRadius = mod(
+    for (int wave = 0; wave < 5; wave++) {
+      float enabled =
+        1.0 - step(u_ripple_count, float(wave) + 0.5);
+      float phaseOffset =
+        float(wave) * travelRadius / max(u_ripple_count, 1.0);
+      float loopRadius = mod(
         (u_time * travelRadius / cycle) + phaseOffset,
         travelRadius
       );
+      float oneShotRadius =
+        (u_time * travelRadius / cycle) -
+        (float(wave) * travelRadius * 0.18);
+      float drainStartRadius = mod(
+        (u_transition_time * travelRadius / cycle) + phaseOffset,
+        travelRadius
+      );
+      float drainRadius =
+        drainStartRadius +
+        max(u_time - u_transition_time, 0.0) * travelRadius / cycle;
+      float waveRadius = oneShotRadius;
+      if (u_mode > 0.5) waveRadius = loopRadius;
+      if (u_mode > 1.5) waveRadius = drainRadius;
 
       float distanceToCrest = radius - waveRadius;
-      float bandWidth = mix(
+      float bandWidth = u_band_width * mix(
         0.0125,
         0.016,
         clamp(waveRadius / edgeRadius, 0.0, 1.0)
@@ -63,7 +86,12 @@ const fragmentShaderSource = `
       float birthFade = smoothstep(0.0, edgeRadius * 0.035, waveRadius);
       float exitFade =
         1.0 - smoothstep(edgeRadius, travelRadius, waveRadius);
-      float visibility = birthFade * exitFade;
+      float visibility =
+        birthFade *
+        exitFade *
+        enabled *
+        u_active *
+        step(0.0, waveRadius);
       float strength = mix(
         0.028,
         0.017,
@@ -116,8 +144,73 @@ function createShader(
   return shader;
 }
 
-export default function Preview() {
+export default function Preview({ className }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const controlDockRef = useRef<HTMLDivElement>(null);
+  const moreButtonRef = useRef<HTMLButtonElement>(null);
+  const firstControlRef = useRef<HTMLButtonElement>(null);
+  const scrubberRef = useRef<HTMLInputElement>(null);
+  const parameterRefs = useRef<Partial<Record<DetailControl, HTMLButtonElement>>>(
+    {},
+  );
+  const runtimeRef = useRef({
+    elapsed: 0,
+    lastFrame: 0,
+    playing: true,
+  });
+  const settingsRef = useRef({
+    active: true,
+    drainStart: 0,
+    mode: 1,
+    rippleCount: 3,
+    rippleWidth: 1.35,
+    speed: 1,
+  });
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [loopEnabled, setLoopEnabled] = useState(true);
+  const [playing, setPlaying] = useState(true);
+  const [rippleCount, setRippleCount] = useState(3);
+  const [rippleWidth, setRippleWidth] = useState(1.35);
+  const [speed, setSpeed] = useState(1);
+  const [detailControl, setDetailControl] =
+    useState<DetailControl | null>(null);
+
+  useEffect(() => {
+    settingsRef.current = {
+      ...settingsRef.current,
+      rippleCount,
+      rippleWidth,
+      speed,
+    };
+  }, [rippleCount, rippleWidth, speed]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    window.requestAnimationFrame(() => firstControlRef.current?.focus());
+  }, [menuOpen]);
+
+  useEffect(() => {
+    if (!menuOpen || !detailControl) return;
+    window.requestAnimationFrame(() => scrubberRef.current?.focus());
+  }, [detailControl, menuOpen]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const closeOnOutsidePress = (event: PointerEvent) => {
+      if (
+        event.target instanceof Node &&
+        !controlDockRef.current?.contains(event.target)
+      ) {
+        setMenuOpen(false);
+        setDetailControl(null);
+      }
+    };
+
+    document.addEventListener("pointerdown", closeOnOutsidePress);
+    return () =>
+      document.removeEventListener("pointerdown", closeOnOutsidePress);
+  }, [menuOpen]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -158,12 +251,28 @@ export default function Preview() {
     const positionLocation = gl.getAttribLocation(program, "a_position");
     const uvLocation = gl.getAttribLocation(program, "a_uv");
     const aspectLocation = gl.getUniformLocation(program, "u_aspect");
+    const bandWidthLocation = gl.getUniformLocation(program, "u_band_width");
+    const modeLocation = gl.getUniformLocation(program, "u_mode");
+    const rippleCountLocation = gl.getUniformLocation(
+      program,
+      "u_ripple_count",
+    );
+    const activeLocation = gl.getUniformLocation(program, "u_active");
+    const transitionTimeLocation = gl.getUniformLocation(
+      program,
+      "u_transition_time",
+    );
     const timeLocation = gl.getUniformLocation(program, "u_time");
     const textureLocation = gl.getUniformLocation(program, "u_texture");
     if (
       positionLocation < 0 ||
       uvLocation < 0 ||
       !aspectLocation ||
+      !bandWidthLocation ||
+      !modeLocation ||
+      !rippleCountLocation ||
+      !activeLocation ||
+      !transitionTimeLocation ||
       !timeLocation ||
       !textureLocation
     ) {
@@ -188,13 +297,36 @@ export default function Preview() {
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
 
     let animationFrame = 0;
-    let resizeObserver: ResizeObserver | undefined;
-    let startedAt = 0;
     let disposed = false;
 
     const render = (time: number) => {
       if (disposed) return;
-      if (!startedAt) startedAt = time;
+      const runtime = runtimeRef.current;
+      const settings = settingsRef.current;
+      if (!runtime.lastFrame) runtime.lastFrame = time;
+
+      const elapsedSinceFrame = Math.min(
+        (time - runtime.lastFrame) / 1000,
+        0.05,
+      );
+      runtime.lastFrame = time;
+      if (runtime.playing) {
+        runtime.elapsed += elapsedSinceFrame * settings.speed;
+      }
+
+      const oneShotDuration =
+        3.45 * (1 + 0.18 * (settings.rippleCount - 1)) + 0.2;
+      const drainComplete =
+        settings.mode === 2 &&
+        runtime.elapsed - settings.drainStart > 3.45;
+      const oneShotComplete =
+        settings.mode === 0 && runtime.elapsed > oneShotDuration;
+      if (runtime.playing && (drainComplete || oneShotComplete)) {
+        runtime.playing = false;
+        settingsRef.current.active = false;
+        settingsRef.current.mode = 0;
+        setPlaying(false);
+      }
 
       const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
       const displayWidth = Math.max(1, Math.round(canvas.clientWidth));
@@ -229,7 +361,12 @@ export default function Preview() {
         2 * Float32Array.BYTES_PER_ELEMENT,
       );
       gl.uniform1f(aspectLocation, displayWidth / displayHeight);
-      gl.uniform1f(timeLocation, (time - startedAt) / 1000);
+      gl.uniform1f(bandWidthLocation, settings.rippleWidth);
+      gl.uniform1f(modeLocation, settings.mode);
+      gl.uniform1f(rippleCountLocation, settings.rippleCount);
+      gl.uniform1f(activeLocation, settings.active ? 1 : 0);
+      gl.uniform1f(transitionTimeLocation, settings.drainStart);
+      gl.uniform1f(timeLocation, runtime.elapsed);
       gl.uniform1i(textureLocation, 0);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
 
@@ -249,10 +386,6 @@ export default function Preview() {
         gl.UNSIGNED_BYTE,
         source,
       );
-      resizeObserver = new ResizeObserver(() => {
-        canvas.width = 0;
-      });
-      resizeObserver.observe(canvas);
       animationFrame = window.requestAnimationFrame(render);
     };
     source.src = backgroundImage.src;
@@ -260,7 +393,6 @@ export default function Preview() {
     return () => {
       disposed = true;
       source.onload = null;
-      resizeObserver?.disconnect();
       window.cancelAnimationFrame(animationFrame);
       gl.deleteTexture(texture);
       gl.deleteBuffer(buffer);
@@ -270,17 +402,285 @@ export default function Preview() {
     };
   }, []);
 
+  const playFromCenter = () => {
+    settingsRef.current.active = true;
+    settingsRef.current.mode = loopEnabled ? 1 : 0;
+    settingsRef.current.drainStart = 0;
+    runtimeRef.current.elapsed = 0;
+    runtimeRef.current.lastFrame = 0;
+    runtimeRef.current.playing = true;
+    setPlaying(true);
+  };
+
+  const togglePlayPause = () => {
+    const runtime = runtimeRef.current;
+    if (runtime.playing) {
+      runtime.playing = false;
+      setPlaying(false);
+      return;
+    }
+
+    if (!settingsRef.current.active) {
+      playFromCenter();
+      return;
+    }
+
+    runtime.lastFrame = 0;
+    runtime.playing = true;
+    setPlaying(true);
+  };
+
+  const toggleLoop = () => {
+    if (!loopEnabled) {
+      settingsRef.current.mode = 1;
+      setLoopEnabled(true);
+      return;
+    }
+
+    setLoopEnabled(false);
+    const runtime = runtimeRef.current;
+    if (!runtime.playing) {
+      settingsRef.current.mode = 0;
+      runtime.elapsed = 0;
+      return;
+    }
+    settingsRef.current.mode = 2;
+    settingsRef.current.drainStart = runtime.elapsed;
+  };
+
+  const closeControls = () => {
+    setMenuOpen(false);
+    setDetailControl(null);
+    window.requestAnimationFrame(() => moreButtonRef.current?.focus());
+  };
+
+  const detailConfig = {
+    ripples: {
+      label: "Ripples",
+      value: String(rippleCount),
+      min: 1,
+      max: 5,
+      step: 1,
+      numericValue: rippleCount,
+      setValue: (next: number) => setRippleCount(Math.round(next)),
+    },
+    speed: {
+      label: "Speed",
+      value: `${speed.toFixed(2).replace(/\.?0+$/, "")}×`,
+      min: 0.5,
+      max: 2,
+      step: 0.05,
+      numericValue: speed,
+      setValue: (next: number) =>
+        setSpeed(Number(Math.min(2, Math.max(0.5, next)).toFixed(2))),
+    },
+    width: {
+      label: "Width",
+      value: `${Math.round(rippleWidth * 100)}%`,
+      min: 0.75,
+      max: 2.25,
+      step: 0.01,
+      numericValue: rippleWidth,
+      setValue: (next: number) =>
+        setRippleWidth(
+          Number(Math.min(2.25, Math.max(0.75, next)).toFixed(2)),
+        ),
+    },
+  };
+  const toggleParameter = (control: DetailControl) => {
+    if (detailControl === control) {
+      setDetailControl(null);
+      window.requestAnimationFrame(() =>
+        parameterRefs.current[control]?.focus(),
+      );
+      return;
+    }
+    setDetailControl(control);
+  };
+
   return (
     <div
-      className={styles.ripple}
-      role="img"
-      aria-label="Miniature sailboats seen through a center-radiating three-dimensional water ripple"
+      className={[styles.ripple, className ?? ""].filter(Boolean).join(" ")}
     >
-      <img {...imageProps} className={styles.base} alt="" />
-      <canvas className={styles.surface} ref={canvasRef} aria-hidden="true" />
+      <div
+        className={styles.visual}
+        role="img"
+        aria-label="Miniature sailboats seen through a center-radiating three-dimensional water ripple"
+      >
+        <img {...imageProps} className={styles.base} alt="" />
+        <canvas className={styles.surface} ref={canvasRef} aria-hidden="true" />
+      </div>
 
-      <span className={styles.label} aria-hidden="true">
-        Image ripple
+      <div
+        className={styles.controlDock}
+        data-detail={detailControl ?? "none"}
+        data-open={menuOpen}
+        ref={controlDockRef}
+        onKeyDown={(event) => {
+          if (event.key !== "Escape") return;
+          if (detailControl) {
+            const previous = detailControl;
+            setDetailControl(null);
+            window.requestAnimationFrame(() =>
+              parameterRefs.current[previous]?.focus(),
+            );
+            return;
+          }
+          closeControls();
+        }}
+      >
+        <div
+          className={styles.controlPanel}
+          id="ripple-controls"
+          role="group"
+          aria-label="Ripple controls"
+        >
+          <div className={styles.mainControls}>
+            <button
+              ref={firstControlRef}
+              className={styles.controlAction}
+              data-active={playing}
+              onClick={togglePlayPause}
+              tabIndex={menuOpen ? 0 : -1}
+              type="button"
+              aria-label={playing ? "Pause ripple" : "Play ripple"}
+              aria-pressed={playing}
+            >
+              <span className={styles.playbackIcon} data-playing={playing} aria-hidden="true">
+                <span className={styles.pauseIcon}>
+                  <i />
+                  <i />
+                </span>
+                <span className={styles.playIcon} />
+              </span>
+            </button>
+            <button
+              className={styles.controlAction}
+              data-active={loopEnabled}
+              onClick={toggleLoop}
+              tabIndex={menuOpen ? 0 : -1}
+              type="button"
+              aria-label={loopEnabled ? "Turn looping off" : "Turn looping on"}
+              aria-pressed={loopEnabled}
+            >
+              <span className={styles.loopIcon} data-on={loopEnabled} aria-hidden="true">
+                <svg
+                  className={styles.loopOn}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M9.828 9.172a4 4 0 1 0 0 5.656a10 10 0 0 0 2.172-2.828a10 10 0 0 1 2.172-2.828a4 4 0 1 1 0 5.656a10 10 0 0 1-2.172-2.828a10 10 0 0 0-2.172-2.828" />
+                </svg>
+                <svg
+                  className={styles.loopOff}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M8.165 8.174a4 4 0 0 0-5.166 3.826a4 4 0 0 0 6.829 2.828a10 10 0 0 0 2.172-2.828m1.677-2.347a10 10 0 0 1 .495-.481a4 4 0 1 1 5.129 6.1m-3.521.537a4 4 0 0 1-1.608-.981a10 10 0 0 1-2.172-2.828" />
+                  <path d="M3 3l18 18" />
+                </svg>
+              </span>
+            </button>
+            {(["speed", "ripples", "width"] as const).map((control) => {
+              const config = detailConfig[control];
+              const expanded = detailControl === control;
+              return (
+                <div
+                  className={styles.parameter}
+                  data-expanded={expanded}
+                  key={control}
+                >
+                  <button
+                    className={styles.parameterToggle}
+                    onClick={() => toggleParameter(control)}
+                    ref={(node) => {
+                      parameterRefs.current[control] = node ?? undefined;
+                    }}
+                    tabIndex={menuOpen ? 0 : -1}
+                    type="button"
+                    aria-expanded={expanded}
+                    aria-controls={`ripple-${control}-scrubber`}
+                  >
+                    <span>{config.label}</span>
+                    <strong>{config.value}</strong>
+                  </button>
+                  <div className={styles.parameterScrubber}>
+                    <input
+                      className={styles.scrubber}
+                      id={`ripple-${control}-scrubber`}
+                      ref={expanded ? scrubberRef : undefined}
+                      type="range"
+                      min={config.min}
+                      max={config.max}
+                      step={config.step}
+                      value={config.numericValue}
+                      onChange={(event) =>
+                        config.setValue(Number(event.target.value))
+                      }
+                      style={
+                        {
+                          "--scrubber-progress": `${
+                            ((config.numericValue - config.min) /
+                              (config.max - config.min)) *
+                            100
+                          }%`,
+                        } as CSSProperties
+                      }
+                      tabIndex={menuOpen && expanded ? 0 : -1}
+                      aria-hidden={!expanded}
+                      aria-label={config.label}
+                      aria-valuetext={config.value}
+                      disabled={!expanded}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <button
+          className={styles.moreButton}
+          ref={moreButtonRef}
+          onClick={() => {
+            if (menuOpen) closeControls();
+            else setMenuOpen(true);
+          }}
+          type="button"
+          aria-controls="ripple-controls"
+          aria-expanded={menuOpen}
+          aria-label={menuOpen ? "Close ripple controls" : "Open ripple controls"}
+        >
+          <span className={styles.moreIcon} data-open={menuOpen} aria-hidden="true">
+            <svg className={styles.moreDots} viewBox="0 0 18 18" fill="currentColor">
+              <circle cx="4" cy="9" r="1.5" />
+              <circle cx="9" cy="9" r="1.5" />
+              <circle cx="14" cy="9" r="1.5" />
+            </svg>
+            <svg
+              className={styles.moreClose}
+              viewBox="0 0 18 18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            >
+              <path d="M5 5l8 8" />
+              <path d="M13 5l-8 8" />
+            </svg>
+          </span>
+        </button>
+      </div>
+      <span className={styles.srOnly} aria-live="polite">
+        {loopEnabled ? "Ripple loop on" : "Ripple loop off"}
       </span>
     </div>
   );
