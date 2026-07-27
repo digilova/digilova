@@ -11,7 +11,7 @@ export const rippleGuide = {
     "Drop the photo on a full-screen WebGL quad so the still image is always the base.",
     "In the fragment shader, measure distance from a point (center, or the cursor). Run a few radial waves with offset phases so they do not pile into one thick ring.",
     "Along each crest, nudge the UVs and add a soft bright edge with a darker trough. That is mostly what sells the curve.",
-    "Drive motion with elapsed time times speed. Loop with a modulo, or let a single pass drain out when you pause. Clicking the image adds another ripple on top instead of wiping the one already going.",
+    "Drive motion with elapsed time times speed. Loop with a modulo, or let a single pass drain out when you pause. Clicking the image starts the ripple over from the beginning.",
     "If reduced motion is on, skip the canvas and leave the photograph alone.",
   ],
   sectionTitles: {
@@ -37,17 +37,17 @@ export function buildRippleSettingsSnippet(settings: RippleSettings) {
 
 export function buildRippleUniformsSnippet(settings: RippleSettings) {
   const mode = settings.loop ? 1 : 0;
-  return `// Global clock keeps running; each click pushes another burst
-// (origin + birth time) instead of resetting elapsed.
+  return `// Wire your settings into the shader each frame
 gl.uniform1f(uRippleCount, ${settings.rippleCount});
 gl.uniform1f(uBandWidth, ${formatNumber(settings.bandWidth)});
+gl.uniform1f(uMode, ${mode}); // 1 = loop, 0 = one-shot
 runtime.elapsed += deltaSeconds * ${formatNumber(settings.speed)};
 gl.uniform1f(uTime, runtime.elapsed);
-gl.uniform1f(uBurstCount, bursts.length);
-// Per burst: origin, birth, mode (${mode} = loop default / 0 = one-shot click)
-gl.uniform2f(uOrigins[i], burst.x, burst.y);
-gl.uniform1f(uBirths[i], burst.birth);
-gl.uniform1f(uModes[i], burst.mode);`;
+gl.uniform2f(
+  uOrigin,
+  ${settings.cursorFollow ? "pointer.x" : "0.5"},
+  ${settings.cursorFollow ? "pointer.y" : "0.5"},
+);`;
 }
 
 export function buildRippleLlmPrompt(settings: RippleSettings) {
@@ -65,7 +65,7 @@ Create a center-out water ripple over a still photograph. The photo itself must 
 - Radial wavefronts leave an origin, travel past the frame edges, and fade.
 - Waves use staggered phases so they do not stack into one thick ring.
 - Around each crest, displace UVs along the radial direction and add soft crest highlight + trough shadow so the band reads as curved water, not a hard circle.
-- Support play/pause. Tapping the image should layer a new ripple on top of any that are already running, instead of resetting them.
+- Support play/pause. Tapping the image should restart the ripple from the beginning, even if one is already playing.
 - Let people drag and drop (or pick) their own image onto the canvas to try the effect on any photo.
 - Respect prefers-reduced-motion: skip the canvas and show the still photograph.
 
@@ -82,9 +82,9 @@ ${buildRippleSettingsSnippet(settings)}
 
 ## Implementation outline
 1. Load the photograph as a WebGL texture and draw a full-screen quad.
-2. In the fragment shader, support a few concurrent bursts. Each has an origin and birth time. Measure distance from that origin and spawn N radial waves with phase offsets based on rippleCount.
-3. Along each crest, nudge UVs and add gaussian crest/trough lighting. Sum displacement across bursts so clicks layer.
-4. Drive motion with a global elapsed clock scaled by speed. Clicks add a new burst; do not reset the clock.
+2. In the fragment shader, measure distance from u_origin. Spawn N radial waves with phase offsets based on rippleCount.
+3. Along each crest, nudge UVs and add gaussian crest/trough lighting.
+4. Drive motion with elapsed time scaled by speed. Loop with mod, or run a one-shot then drain out when loop is off.
 5. Wire uniforms each frame similarly to:
 ${buildRippleUniformsSnippet(settings)}
 

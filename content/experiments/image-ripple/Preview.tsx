@@ -26,29 +26,18 @@ const vertexShaderSource = `
   }
 `;
 
-const MAX_BURSTS = 4;
-
-type RippleBurst = {
-  x: number;
-  y: number;
-  birth: number;
-  mode: number;
-  drainStart: number;
-};
-
 const fragmentShaderSource = `
   precision highp float;
 
   uniform sampler2D u_texture;
   uniform float u_aspect;
   uniform float u_band_width;
+  uniform float u_mode;
   uniform float u_ripple_count;
+  uniform float u_active;
+  uniform float u_transition_time;
   uniform float u_time;
-  uniform float u_burst_count;
-  uniform vec2 u_origins[4];
-  uniform float u_births[4];
-  uniform float u_modes[4];
-  uniform float u_drain_starts[4];
+  uniform vec2 u_origin;
   varying vec2 v_uv;
 
   float gaussian(float value, float center, float width) {
@@ -57,97 +46,84 @@ const fragmentShaderSource = `
   }
 
   void main() {
+    vec2 point = v_uv - u_origin;
+    point.x *= u_aspect;
+
+    float radius = length(point);
+    vec2 direction = radius > 0.0001 ? point / radius : vec2(0.0);
+    vec2 uvDirection = vec2(direction.x / u_aspect, direction.y);
+
+    vec2 toCorner00 = vec2((0.0 - u_origin.x) * u_aspect, 0.0 - u_origin.y);
+    vec2 toCorner10 = vec2((1.0 - u_origin.x) * u_aspect, 0.0 - u_origin.y);
+    vec2 toCorner01 = vec2((0.0 - u_origin.x) * u_aspect, 1.0 - u_origin.y);
+    vec2 toCorner11 = vec2((1.0 - u_origin.x) * u_aspect, 1.0 - u_origin.y);
+    float edgeRadius = max(
+      max(length(toCorner00), length(toCorner10)),
+      max(length(toCorner01), length(toCorner11))
+    );
+    float travelRadius = edgeRadius * 1.16;
+    float cycle = 3.45;
+    float displacement = 0.0;
     float lighting = 0.0;
-    vec2 sampleShift = vec2(0.0);
 
-    for (int burst = 0; burst < 4; burst++) {
-      if (float(burst) >= u_burst_count) {
-        break;
-      }
-
-      vec2 origin = u_origins[burst];
-      float localTime = max(u_time - u_births[burst], 0.0);
-      float mode = u_modes[burst];
-      float drainLocal = max(u_drain_starts[burst], 0.0);
-
-      vec2 point = v_uv - origin;
-      point.x *= u_aspect;
-      float radius = length(point);
-      vec2 direction = radius > 0.0001 ? point / radius : vec2(0.0);
-      vec2 uvDirection = vec2(direction.x / u_aspect, direction.y);
-
-      vec2 toCorner00 = vec2((0.0 - origin.x) * u_aspect, 0.0 - origin.y);
-      vec2 toCorner10 = vec2((1.0 - origin.x) * u_aspect, 0.0 - origin.y);
-      vec2 toCorner01 = vec2((0.0 - origin.x) * u_aspect, 1.0 - origin.y);
-      vec2 toCorner11 = vec2((1.0 - origin.x) * u_aspect, 1.0 - origin.y);
-      float edgeRadius = max(
-        max(length(toCorner00), length(toCorner10)),
-        max(length(toCorner01), length(toCorner11))
+    for (int wave = 0; wave < 5; wave++) {
+      float enabled =
+        1.0 - step(u_ripple_count, float(wave) + 0.5);
+      float phaseOffset =
+        float(wave) * travelRadius / max(u_ripple_count, 1.0);
+      float loopRadius = mod(
+        (u_time * travelRadius / cycle) + phaseOffset,
+        travelRadius
       );
-      float travelRadius = edgeRadius * 1.16;
-      float cycle = 3.45;
-      float burstDisplacement = 0.0;
+      float oneShotRadius =
+        (u_time * travelRadius / cycle) -
+        (float(wave) * travelRadius * 0.18);
+      float drainStartRadius = mod(
+        (u_transition_time * travelRadius / cycle) + phaseOffset,
+        travelRadius
+      );
+      float drainRadius =
+        drainStartRadius +
+        max(u_time - u_transition_time, 0.0) * travelRadius / cycle;
+      float waveRadius = oneShotRadius;
+      if (u_mode > 0.5) waveRadius = loopRadius;
+      if (u_mode > 1.5) waveRadius = drainRadius;
 
-      for (int wave = 0; wave < 5; wave++) {
-        float enabled =
-          1.0 - step(u_ripple_count, float(wave) + 0.5);
-        float phaseOffset =
-          float(wave) * travelRadius / max(u_ripple_count, 1.0);
-        float loopRadius = mod(
-          (localTime * travelRadius / cycle) + phaseOffset,
-          travelRadius
-        );
-        float oneShotRadius =
-          (localTime * travelRadius / cycle) -
-          (float(wave) * travelRadius * 0.18);
-        float drainStartRadius = mod(
-          (drainLocal * travelRadius / cycle) + phaseOffset,
-          travelRadius
-        );
-        float drainRadius =
-          drainStartRadius +
-          max(localTime - drainLocal, 0.0) * travelRadius / cycle;
-        float waveRadius = oneShotRadius;
-        if (mode > 0.5) waveRadius = loopRadius;
-        if (mode > 1.5) waveRadius = drainRadius;
+      float distanceToCrest = radius - waveRadius;
+      float bandWidth = u_band_width * mix(
+        0.0125,
+        0.016,
+        clamp(waveRadius / max(edgeRadius, 0.0001), 0.0, 1.0)
+      );
+      float profilePosition = distanceToCrest / bandWidth;
+      float waveProfile =
+        profilePosition * exp(-0.5 * profilePosition * profilePosition);
 
-        float distanceToCrest = radius - waveRadius;
-        float bandWidth = u_band_width * mix(
-          0.0125,
-          0.016,
-          clamp(waveRadius / max(edgeRadius, 0.0001), 0.0, 1.0)
-        );
-        float profilePosition = distanceToCrest / bandWidth;
-        float waveProfile =
-          profilePosition * exp(-0.5 * profilePosition * profilePosition);
+      float birthFade = smoothstep(0.0, edgeRadius * 0.035, waveRadius);
+      float exitFade =
+        1.0 - smoothstep(edgeRadius, travelRadius, waveRadius);
+      float visibility =
+        birthFade *
+        exitFade *
+        enabled *
+        u_active *
+        step(0.0, waveRadius);
+      float strength = mix(
+        0.028,
+        0.017,
+        clamp(waveRadius / max(edgeRadius, 0.0001), 0.0, 1.0)
+      );
 
-        float birthFade = smoothstep(0.0, edgeRadius * 0.035, waveRadius);
-        float exitFade =
-          1.0 - smoothstep(edgeRadius, travelRadius, waveRadius);
-        float visibility =
-          birthFade *
-          exitFade *
-          enabled *
-          step(0.0, waveRadius);
-        float strength = mix(
-          0.028,
-          0.017,
-          clamp(waveRadius / max(edgeRadius, 0.0001), 0.0, 1.0)
-        );
+      displacement += waveProfile * strength * visibility;
 
-        burstDisplacement += waveProfile * strength * visibility;
-
-        float brightCrest = gaussian(profilePosition, -0.22, 0.34);
-        float darkTrough = gaussian(profilePosition, 0.58, 0.58);
-        lighting +=
-          (brightCrest * 0.09 - darkTrough * 0.052) * visibility;
-      }
-
-      sampleShift += uvDirection * burstDisplacement;
+      float brightCrest = gaussian(profilePosition, -0.22, 0.34);
+      float darkTrough = gaussian(profilePosition, 0.58, 0.58);
+      lighting +=
+        (brightCrest * 0.09 - darkTrough * 0.052) * visibility;
     }
 
     vec2 sampleUv = clamp(
-      v_uv - sampleShift,
+      v_uv - uvDirection * displacement,
       vec2(0.001),
       vec2(0.999)
     );
@@ -231,10 +207,10 @@ export default function Preview({
     lastFrame: 0,
     playing: true,
   });
-  const burstsRef = useRef<RippleBurst[]>([
-    { x: 0.5, y: 0.5, birth: 0, mode: 1, drainStart: 0 },
-  ]);
   const settingsRef = useRef({
+    active: true,
+    drainStart: 0,
+    mode: 1,
     originX: 0.5,
     originY: 0.5,
     rippleCount: 3,
@@ -382,38 +358,31 @@ export default function Preview({
     const uvLocation = gl.getAttribLocation(program, "a_uv");
     const aspectLocation = gl.getUniformLocation(program, "u_aspect");
     const bandWidthLocation = gl.getUniformLocation(program, "u_band_width");
+    const modeLocation = gl.getUniformLocation(program, "u_mode");
     const rippleCountLocation = gl.getUniformLocation(
       program,
       "u_ripple_count",
     );
+    const activeLocation = gl.getUniformLocation(program, "u_active");
+    const transitionTimeLocation = gl.getUniformLocation(
+      program,
+      "u_transition_time",
+    );
     const timeLocation = gl.getUniformLocation(program, "u_time");
-    const burstCountLocation = gl.getUniformLocation(program, "u_burst_count");
+    const originLocation = gl.getUniformLocation(program, "u_origin");
     const textureLocation = gl.getUniformLocation(program, "u_texture");
-    const originLocations = Array.from({ length: MAX_BURSTS }, (_, index) =>
-      gl.getUniformLocation(program, `u_origins[${index}]`),
-    );
-    const birthLocations = Array.from({ length: MAX_BURSTS }, (_, index) =>
-      gl.getUniformLocation(program, `u_births[${index}]`),
-    );
-    const modeLocations = Array.from({ length: MAX_BURSTS }, (_, index) =>
-      gl.getUniformLocation(program, `u_modes[${index}]`),
-    );
-    const drainLocations = Array.from({ length: MAX_BURSTS }, (_, index) =>
-      gl.getUniformLocation(program, `u_drain_starts[${index}]`),
-    );
     if (
       positionLocation < 0 ||
       uvLocation < 0 ||
       !aspectLocation ||
       !bandWidthLocation ||
+      !modeLocation ||
       !rippleCountLocation ||
+      !activeLocation ||
+      !transitionTimeLocation ||
       !timeLocation ||
-      !burstCountLocation ||
-      !textureLocation ||
-      originLocations.some((location) => !location) ||
-      birthLocations.some((location) => !location) ||
-      modeLocations.some((location) => !location) ||
-      drainLocations.some((location) => !location)
+      !originLocation ||
+      !textureLocation
     ) {
       return;
     }
@@ -470,16 +439,15 @@ export default function Preview({
 
       const oneShotDuration =
         3.45 * (1 + 0.18 * (settings.rippleCount - 1)) + 0.2;
-      const bursts = burstsRef.current.filter((burst) => {
-        const localTime = runtime.elapsed - burst.birth;
-        if (burst.mode === 1) return true;
-        if (burst.mode === 2) return localTime - burst.drainStart < 3.45;
-        return localTime < oneShotDuration;
-      });
-      burstsRef.current = bursts;
-
-      if (runtime.playing && bursts.length === 0) {
+      const drainComplete =
+        settings.mode === 2 &&
+        runtime.elapsed - settings.drainStart > 3.45;
+      const oneShotComplete =
+        settings.mode === 0 && runtime.elapsed > oneShotDuration;
+      if (runtime.playing && (drainComplete || oneShotComplete)) {
         runtime.playing = false;
+        settingsRef.current.active = false;
+        settingsRef.current.mode = 0;
         setPlaying(false);
       }
 
@@ -524,28 +492,12 @@ export default function Preview({
       );
       gl.uniform1f(aspectLocation, displayWidth / displayHeight);
       gl.uniform1f(bandWidthLocation, settings.rippleWidth);
+      gl.uniform1f(modeLocation, settings.mode);
       gl.uniform1f(rippleCountLocation, settings.rippleCount);
+      gl.uniform1f(activeLocation, settings.active ? 1 : 0);
+      gl.uniform1f(transitionTimeLocation, settings.drainStart);
       gl.uniform1f(timeLocation, runtime.elapsed);
-      gl.uniform1f(burstCountLocation, bursts.length);
-      for (let index = 0; index < MAX_BURSTS; index += 1) {
-        const burst = bursts[index];
-        const origin = originLocations[index];
-        const birth = birthLocations[index];
-        const mode = modeLocations[index];
-        const drain = drainLocations[index];
-        if (!origin || !birth || !mode || !drain) continue;
-        if (burst) {
-          gl.uniform2f(origin, burst.x, burst.y);
-          gl.uniform1f(birth, burst.birth);
-          gl.uniform1f(mode, burst.mode);
-          gl.uniform1f(drain, burst.drainStart);
-        } else {
-          gl.uniform2f(origin, 0.5, 0.5);
-          gl.uniform1f(birth, 0);
-          gl.uniform1f(mode, 0);
-          gl.uniform1f(drain, 0);
-        }
-      }
+      gl.uniform2f(originLocation, settings.originX, settings.originY);
       gl.uniform1i(textureLocation, 0);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
 
@@ -575,32 +527,13 @@ export default function Preview({
     };
   }, []);
 
-  const spawnRipple = (
-    x = settingsRef.current.originX,
-    y = settingsRef.current.originY,
-    options: { reset?: boolean; mode?: number } = {},
-  ) => {
-    const runtime = runtimeRef.current;
-    if (options.reset) {
-      burstsRef.current = [];
-      runtime.elapsed = 0;
-      runtime.lastFrame = 0;
-    }
-
-    const mode = options.mode ?? (loopEnabled ? 1 : 0);
-    const next: RippleBurst = {
-      x,
-      y,
-      birth: runtime.elapsed,
-      mode,
-      drainStart: 0,
-    };
-    const bursts = burstsRef.current;
-    if (bursts.length >= MAX_BURSTS) {
-      bursts.shift();
-    }
-    bursts.push(next);
-    runtime.playing = true;
+  const playFromCenter = () => {
+    settingsRef.current.active = true;
+    settingsRef.current.mode = loopEnabled ? 1 : 0;
+    settingsRef.current.drainStart = 0;
+    runtimeRef.current.elapsed = 0;
+    runtimeRef.current.lastFrame = 0;
+    runtimeRef.current.playing = true;
     setPlaying(true);
   };
 
@@ -612,8 +545,8 @@ export default function Preview({
       return;
     }
 
-    if (burstsRef.current.length === 0) {
-      spawnRipple(0.5, 0.5, { reset: true });
+    if (!settingsRef.current.active) {
+      playFromCenter();
       return;
     }
 
@@ -624,29 +557,20 @@ export default function Preview({
 
   const toggleLoop = () => {
     if (!loopEnabled) {
-      for (const burst of burstsRef.current) {
-        if (burst.mode !== 0) continue;
-        burst.mode = 1;
-        burst.drainStart = 0;
-      }
+      settingsRef.current.mode = 1;
       setLoopEnabled(true);
       return;
     }
 
     setLoopEnabled(false);
     const runtime = runtimeRef.current;
-    if (!runtime.playing || burstsRef.current.length === 0) {
-      for (const burst of burstsRef.current) {
-        burst.mode = 0;
-        burst.drainStart = 0;
-      }
+    if (!runtime.playing) {
+      settingsRef.current.mode = 0;
+      runtime.elapsed = 0;
       return;
     }
-    for (const burst of burstsRef.current) {
-      if (burst.mode !== 1) continue;
-      burst.mode = 2;
-      burst.drainStart = Math.max(runtime.elapsed - burst.birth, 0);
-    }
+    settingsRef.current.mode = 2;
+    settingsRef.current.drainStart = runtime.elapsed;
   };
 
   const setOriginFromPointer = (event: {
@@ -656,21 +580,14 @@ export default function Preview({
   }) => {
     const rect = event.currentTarget.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return;
-    const x = Math.min(
+    settingsRef.current.originX = Math.min(
       1,
       Math.max(0, (event.clientX - rect.left) / rect.width),
     );
-    const y = Math.min(
+    settingsRef.current.originY = Math.min(
       1,
       Math.max(0, 1 - (event.clientY - rect.top) / rect.height),
     );
-    settingsRef.current.originX = x;
-    settingsRef.current.originY = y;
-    const latest = burstsRef.current[burstsRef.current.length - 1];
-    if (latest && cursorFollow) {
-      latest.x = x;
-      latest.y = y;
-    }
   };
 
   const toggleCursorFollow = () => {
@@ -746,7 +663,7 @@ export default function Preview({
       }
       objectUrlRef.current = url;
       setImageSrc(url);
-      spawnRipple(0.5, 0.5, { reset: true });
+      playFromCenter();
     };
     source.onerror = () => {
       URL.revokeObjectURL(url);
@@ -811,16 +728,8 @@ export default function Preview({
           event.stopPropagation();
           if (cursorFollow) {
             setOriginFromPointer(event);
-          } else {
-            settingsRef.current.originX = 0.5;
-            settingsRef.current.originY = 0.5;
           }
-          // Layer a new one-shot on top of whatever is already running.
-          spawnRipple(
-            settingsRef.current.originX,
-            settingsRef.current.originY,
-            { mode: 0 },
-          );
+          playFromCenter();
         }}
         onDragEnter={onDragEnter}
         onDragOver={onDragOver}
