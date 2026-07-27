@@ -29,6 +29,14 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           </Link>
           <a
             className="site-link"
+            href="https://www.linkedin.com/in/dianasimakhov"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            LinkedIn
+          </a>
+          <a
+            className="site-link"
             href="mailto:simakhovdiana@gmail.com"
           >
             Email

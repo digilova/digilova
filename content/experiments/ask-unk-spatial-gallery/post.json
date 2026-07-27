@@ -1,19 +1,19 @@
 {
   "title": "Spatial Card Gallery",
   "date": "2026-07-23",
-  "summary": "Click a card or pinch out to enter the spatial view. Drag to explore, then pinch in or tap empty space—not a background card—to return to the five-row grid.",
+  "summary": "I was poking at a dense card grid and how it could open into a roomier spatial field without feeling like you left the collection.",
   "hasDetail": false,
   "tags": ["Interaction design", "Spatial UI", "Prototype"],
   "blocks": [
     {
       "id": "overview",
       "type": "text",
-      "content": "Sports-card collections become difficult to navigate when every item competes for the same amount of space. This experiment explores a continuous transition between a compact five-row gallery and a free-moving spatial field.\n\nThe same cards remain visible throughout the transition, preserving orientation while allowing one card to become the focus."
+      "content": "I was poking at a dense sports-card grid and how it could open into a roomier spatial field without feeling like you left the collection.\n\nSame cards stay on screen the whole time. Compact five-row scan on one side, freer pan-and-zoom on the other. Click a card or pinch out to expand. Pinch in or tap empty space to come back."
     },
     {
       "id": "interaction-principle",
       "type": "callout",
-      "content": "The interaction should feel like moving through one collection—not switching between two unrelated screens."
+      "content": "It should feel like moving through one collection — not switching between two unrelated screens."
     },
     {
       "id": "controls",

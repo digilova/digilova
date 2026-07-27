@@ -714,6 +714,11 @@ export function SpatialCardGallery({
               ? event.deltaX
               : event.deltaY),
         );
+        return;
+      }
+
+      if (modeRef.current === "explore") {
+        event.preventDefault();
       }
     };
 

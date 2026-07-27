@@ -158,7 +158,8 @@ select {
 }
 
 .profile-header p,
-.page-heading > p {
+.page-heading > p,
+.intro-copy {
   margin: 0;
   color: var(--muted);
   font-size: 13px;
@@ -166,8 +167,10 @@ select {
 
 .intro-copy {
   display: grid;
-  gap: 18px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-top: 8px;
+  max-width: 42em;
+  line-height: 1.65;
 }
 
 .intro-copy p {
@@ -341,8 +344,12 @@ select {
 }
 
 .experiment-card-date {
-  color: var(--faint);
+  color: var(--muted);
   font-size: 11px;
+}
+
+.experiment-card .work-role {
+  font-weight: 400;
 }
 
 .experiment-card .work-company {
@@ -378,7 +385,7 @@ select {
 
 .experiment-post-header time {
   padding-top: 2px;
-  color: var(--faint);
+  color: var(--muted);
   font-size: 11px;
   white-space: nowrap;
 }
@@ -581,8 +588,10 @@ select {
 
 .code-block pre {
   margin: 0;
+  padding: 14px 16px;
   border: 0;
   border-radius: 0;
+  overflow-x: auto;
 }
 
 .preview-panel,
