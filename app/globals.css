@@ -304,6 +304,7 @@ select {
 
 .experiments-list {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0;
 }
 
@@ -315,8 +316,9 @@ select {
 }
 
 .experiment-visual[data-mode="preview"] {
+  min-height: 0;
   padding: 0;
-  background: #4f46e5;
+  background: transparent;
 }
 
 .ask-unk-gallery-preview {

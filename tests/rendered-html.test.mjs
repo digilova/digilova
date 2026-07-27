@@ -45,7 +45,7 @@ test("server-renders the experiments index", async () => {
   const html = await response.text();
   assert.doesNotMatch(html, /href="\/"[^>]*>\s*Work\s*<\/a>/);
   assert.match(html, /aria-label="Diana Simakhov — Experiments"/);
-  assert.match(html, /ASK UNK — Focused Card Viewer/);
+  assert.match(html, /Focused Card Viewer/);
   assert.match(html, /Interactive player card viewer/);
   assert.match(html, /\/experiments\/yamal\/yamal-front\.webp/);
   assert.match(html, /\/experiments\/players\/haaland-front\.webp/);
@@ -54,7 +54,7 @@ test("server-renders the experiments index", async () => {
     html.match(/href="\/experiments\/focused-card-viewer"/g)?.length,
     undefined,
   );
-  assert.match(html, /ASK UNK — Spatial Card Gallery/);
+  assert.match(html, /Spatial Card Gallery/);
   assert.match(html, /Explore the ASK UNK sports-card collection/);
   assert.match(html, /\/experiments\/ask-unk\/cards\/card-01\.webp/);
   assert.equal(

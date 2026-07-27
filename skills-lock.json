@@ -1,0 +1,107 @@
+{
+  "version": 1,
+  "skills": {
+    "accessibility-specialist": {
+      "source": "pablostanley/designteam-app",
+      "sourceType": "github",
+      "skillPath": "skills/accessibility-specialist/SKILL.md",
+      "computedHash": "6d4f23afaabbc1eb68b4978b2eec81eeb6c233213358cba971ab83733907d29e"
+    },
+    "brand-strategist": {
+      "source": "pablostanley/designteam-app",
+      "sourceType": "github",
+      "skillPath": "skills/brand-strategist/SKILL.md",
+      "computedHash": "2b1b1fb19206ec99f0f14e4af9fafc4da8cc88a00d5e33d4ef90eb6d42c84790"
+    },
+    "content-strategist": {
+      "source": "pablostanley/designteam-app",
+      "sourceType": "github",
+      "skillPath": "skills/content-strategist/SKILL.md",
+      "computedHash": "4bac87a7cfed03e643f04371a0143b8147261bab7ee3735eeb84ce1bcddb7393"
+    },
+    "copywriter": {
+      "source": "pablostanley/designteam-app",
+      "sourceType": "github",
+      "skillPath": "skills/copywriter/SKILL.md",
+      "computedHash": "b318013285b3cb7685acb590e910ec500eaa667b1e524b81eea390e12dd256f3"
+    },
+    "creative-director": {
+      "source": "pablostanley/designteam-app",
+      "sourceType": "github",
+      "skillPath": "skills/creative-director/SKILL.md",
+      "computedHash": "430b5b6362db8e9ff122c745cc7facee7c736aa7287cc5ef94e7c567c63e24d1"
+    },
+    "design-engineer": {
+      "source": "pablostanley/designteam-app",
+      "sourceType": "github",
+      "skillPath": "skills/design-engineer/SKILL.md",
+      "computedHash": "0099b6abc049c30485221777af702a06225f796155630e41aa03a495df895048"
+    },
+    "design-team": {
+      "source": "pablostanley/designteam-app",
+      "sourceType": "github",
+      "skillPath": "skills/design-team/SKILL.md",
+      "computedHash": "bad3effa407ac29fea250169f8cf41a3643cd7d7152701463c93e11c67367866"
+    },
+    "editorial-designer": {
+      "source": "pablostanley/designteam-app",
+      "sourceType": "github",
+      "skillPath": "skills/editorial-designer/SKILL.md",
+      "computedHash": "96c117776dd3450a59d842c19309be9f439cd5d9a1deb51f25b4290fb803af6f"
+    },
+    "graphic-designer": {
+      "source": "pablostanley/designteam-app",
+      "sourceType": "github",
+      "skillPath": "skills/graphic-designer/SKILL.md",
+      "computedHash": "02fbe2585504786902b8b035fb4a83f6894e8e7520feb00e5569c6a3c262add4"
+    },
+    "marketing-strategist": {
+      "source": "pablostanley/designteam-app",
+      "sourceType": "github",
+      "skillPath": "skills/marketing-strategist/SKILL.md",
+      "computedHash": "ef303b2d94c69899b40d0cb70997b7e53a3cef7428f2c9c77d2788213c21e552"
+    },
+    "motion-designer": {
+      "source": "pablostanley/designteam-app",
+      "sourceType": "github",
+      "skillPath": "skills/motion-designer/SKILL.md",
+      "computedHash": "31132f8950fec8712b264d17b4cfee3d2bdd73fb6b79e04b89d09cf625b98578"
+    },
+    "print-designer": {
+      "source": "pablostanley/designteam-app",
+      "sourceType": "github",
+      "skillPath": "skills/print-designer/SKILL.md",
+      "computedHash": "1bbea525bd65ff89022b87338c840e947944cfa6289be5d88bf4ebba81ba27b6"
+    },
+    "researcher": {
+      "source": "pablostanley/designteam-app",
+      "sourceType": "github",
+      "skillPath": "skills/researcher/SKILL.md",
+      "computedHash": "dcad744d486c999ec2f063260f178cc6d1a281763f44a000b8e900c1817f078d"
+    },
+    "seo-specialist": {
+      "source": "pablostanley/designteam-app",
+      "sourceType": "github",
+      "skillPath": "skills/seo-specialist/SKILL.md",
+      "computedHash": "fd981610578101675013b06ad681819aabdd2ac7feb7a76d84777cebbcca0c1b"
+    },
+    "social-media-designer": {
+      "source": "pablostanley/designteam-app",
+      "sourceType": "github",
+      "skillPath": "skills/social-media-designer/SKILL.md",
+      "computedHash": "aec903792f167be8f56e67bf497db4a222f627ac49441a54f0da9be249bbc1bb"
+    },
+    "ux-designer": {
+      "source": "pablostanley/designteam-app",
+      "sourceType": "github",
+      "skillPath": "skills/ux-designer/SKILL.md",
+      "computedHash": "32b145abbbce709a17788f2fafd2cf02bc9341be593517d516be4922fb8248b0"
+    },
+    "ux-writer": {
+      "source": "pablostanley/designteam-app",
+      "sourceType": "github",
+      "skillPath": "skills/ux-writer/SKILL.md",
+      "computedHash": "db838e1166ccbb78bfeace31dfcacab7baf38145fa306a96c8d076ab26b776a9"
+    }
+  }
+}

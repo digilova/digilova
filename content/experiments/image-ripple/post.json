@@ -1,0 +1,19 @@
+{
+  "title": "Image Ripple",
+  "date": "2026-07-27",
+  "summary": "Three continuous wavefronts bend light from the image center to its edges, using radial displacement and soft crest-and-trough shading.",
+  "hasDetail": false,
+  "tags": ["Motion", "CSS", "Image treatment"],
+  "blocks": [
+    {
+      "id": "overview",
+      "type": "text",
+      "content": "This study turns one photograph into a center-out water ripple while keeping the original image perfectly still and undistorted beneath the effect.\n\nThree phase-offset wavefronts travel continuously beyond the frame. A lightweight GPU shader bends pixels in opposite directions around each crest, then adds a soft highlight and trough shadow so the edge reads as curved water rather than a circular crop."
+    },
+    {
+      "id": "accessibility",
+      "type": "callout",
+      "content": "When reduced motion is enabled, the animation pauses on a composed still frame while preserving the layered refraction."
+    }
+  ]
+}
